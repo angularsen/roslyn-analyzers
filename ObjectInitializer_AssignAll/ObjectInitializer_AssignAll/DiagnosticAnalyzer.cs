@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ObjectInitializer_AssignAll
@@ -33,7 +35,20 @@ namespace ObjectInitializer_AssignAll
         {
             // TODO: Consider registering other actions that act on syntax instead of or in addition to symbols
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
-            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
+//            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
+//            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.);
+            context.RegisterSyntaxNodeAction(AnalyzeObjectInitializer, SyntaxKind.ObjectInitializerExpression);
+        }
+
+        private void AnalyzeObjectInitializer(SyntaxNodeAnalysisContext ctx)
+        {
+            var memberInitialisers = ctx.Node.ChildNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .Select(memberInitializer => new
+                {
+                    PropertyName = ((IdentifierNameSyntax) memberInitializer.Left).Identifier.ValueText,
+                    ValueExpression = memberInitializer.Right
+                });
         }
 
         private static void AnalyzeSymbol(SymbolAnalysisContext context)
