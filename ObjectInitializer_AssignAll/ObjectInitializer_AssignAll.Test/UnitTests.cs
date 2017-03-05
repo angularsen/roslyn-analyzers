@@ -2,16 +2,13 @@
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using TestHelper;
-using ObjectInitializer_AssignAll;
 
 namespace ObjectInitializer_AssignAll.Test
 {
     [TestClass]
     public class UnitTest : CodeFixVerifier
     {
-
         //No diagnostics expected to show up
         [TestMethod]
         public void TestMethod1()
@@ -39,15 +36,16 @@ namespace ObjectInitializer_AssignAll.Test
         {   
         }
     }";
-            var expected = new DiagnosticResult
+            DiagnosticResult expected = new DiagnosticResult
             {
                 Id = "ObjectInitializer_AssignAll",
-                Message = String.Format("Type name '{0}' contains lowercase letters", "TypeName"),
+                Message = string.Format("Type name '{0}' contains lowercase letters", "TypeName"),
                 Severity = DiagnosticSeverity.Warning,
                 Locations =
-                    new[] {
-                            new DiagnosticResultLocation("Test0.cs", 11, 15)
-                        }
+                    new[]
+                    {
+                        new DiagnosticResultLocation("Test0.cs", 11, 15)
+                    }
             };
 
             VerifyCSharpDiagnostic(test, expected);
