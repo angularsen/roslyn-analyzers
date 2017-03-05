@@ -18,12 +18,9 @@ namespace ObjectInitializer_AssignAll
     [Shared]
     public class ObjectInitializer_AssignAllCodeFixProvider : CodeFixProvider
     {
-        private const string title = "Make uppercase";
+        private const string Title = "Make uppercase";
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(ObjectInitializer_AssignAllAnalyzer.DiagnosticId); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ObjectInitializer_AssignAllAnalyzer.DiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
@@ -46,9 +43,9 @@ namespace ObjectInitializer_AssignAll
             // Register a code action that will invoke the fix.
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title,
+                    Title,
                     c => MakeUppercaseAsync(context.Document, declaration, c),
-                    title),
+                    Title),
                 diagnostic);
         }
 

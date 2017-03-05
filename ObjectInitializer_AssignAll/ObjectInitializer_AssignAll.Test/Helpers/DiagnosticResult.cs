@@ -51,19 +51,10 @@ namespace TestHelper
 
         public string Message { get; set; }
 
-        public string Path
-        {
-            get { return Locations.Length > 0 ? Locations[0].Path : ""; }
-        }
+        public string Path => Locations.Length > 0 ? Locations[0].Path : "";
 
-        public int Line
-        {
-            get { return Locations.Length > 0 ? Locations[0].Line : -1; }
-        }
+        public int Line => Locations.Length > 0 ? Locations[0].Line : -1;
 
-        public int Column
-        {
-            get { return Locations.Length > 0 ? Locations[0].Column : -1; }
-        }
+        public int Column => Locations.Length > 0 ? Locations[0].Column : -1;
     }
 }
