@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectInitializer_AssignAll
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectInitializer_AssignAll.Vsix", "ObjectInitializer_AssignAll\ObjectInitializer_AssignAll.Vsix\ObjectInitializer_AssignAll.Vsix.csproj", "{B176E12E-F1EB-4776-9D13-3F4E9064E08D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleConsoleApp", "SampleConsoleApp\SampleConsoleApp.csproj", "{50FFCAEA-07D5-493E-8904-DEE6A7D9BE0D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{B176E12E-F1EB-4776-9D13-3F4E9064E08D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B176E12E-F1EB-4776-9D13-3F4E9064E08D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B176E12E-F1EB-4776-9D13-3F4E9064E08D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50FFCAEA-07D5-493E-8904-DEE6A7D9BE0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50FFCAEA-07D5-493E-8904-DEE6A7D9BE0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50FFCAEA-07D5-493E-8904-DEE6A7D9BE0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50FFCAEA-07D5-493E-8904-DEE6A7D9BE0D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
