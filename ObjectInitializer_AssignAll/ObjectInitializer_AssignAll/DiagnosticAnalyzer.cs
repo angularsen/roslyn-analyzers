@@ -75,20 +75,5 @@ namespace ObjectInitializer_AssignAll
                 ctx.ReportDiagnostic(diagnostic);
             }
         }
-
-        private static void AnalyzeSymbol(SymbolAnalysisContext context)
-        {
-            // TODO: Replace the following code with your own analysis, generating Diagnostic objects for any issues you find
-            INamedTypeSymbol namedTypeSymbol = (INamedTypeSymbol) context.Symbol;
-
-            // Find just those named type symbols with names containing lowercase letters.
-            if (namedTypeSymbol.Name.ToCharArray().Any(char.IsLower))
-            {
-                // For all such symbols, produce a diagnostic.
-                Diagnostic diagnostic = Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], namedTypeSymbol.Name);
-
-                context.ReportDiagnostic(diagnostic);
-            }
-        }
     }
 }
