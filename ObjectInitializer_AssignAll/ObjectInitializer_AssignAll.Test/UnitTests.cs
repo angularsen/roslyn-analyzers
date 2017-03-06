@@ -37,9 +37,15 @@ namespace SampleConsoleApp
 
         private class Foo
         {
-            public int Prop1 { get; set; }
-            public string Prop2 { get; set; }
-            public bool Field3 { get; set; }
+            public int PropInt { get; set; }
+            public string PropString { get; }
+            public int PropIntReadOnly { get; }
+            public bool FieldBool;
+            public readonly bool FieldBoolReadOnly;
+            public int this[int val] => val;
+
+            public void MethodVoid() { }
+            public int MethodInt() => 1;
         }
     }
 }        
@@ -58,33 +64,38 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            Foo foo = new Foo
+            var foo = new Foo
             {
-                Prop1 = 1,
+                FieldBool = true,
                 // Diagnostics should flag that this property is not set
-//                Prop2 = ""2"",
-                Field3 = true
+                // PropInt = 1,
+                PropString = ""my string""
             };
-        }
 
         private class Foo
         {
-            public int Prop1 { get; set; }
-            public string Prop2 { get; set; }
-            public bool Field3 { get; set; }
+            public int PropInt { get; set; }
+            public string PropString { get; set; }
+            public int PropIntReadOnly { get; }
+            public bool FieldBool;
+            public readonly bool FieldBoolReadOnly;
+            public int this[int val] => val;
+
+            public void MethodVoid() { }
+            public int MethodInt() => 1;
         }
     }
-}        
+}
 ";
             DiagnosticResult expected = new DiagnosticResult
             {
                 Id = "ObjectInitializer_AssignAll",
-                Message = "Type name 'TypeName' contains lowercase letters",
-                Severity = DiagnosticSeverity.Warning,
+                Message = "One or more properties/fields are not assigned in object initializer for type 'Foo'.",
+                Severity = DiagnosticSeverity.Error,
                 Locations =
                     new[]
                     {
-                        new DiagnosticResultLocation("Test0.cs", 11, 15)
+                        new DiagnosticResultLocation("Test0.cs", 9, 13)
                     }
             };
 

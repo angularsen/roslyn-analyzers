@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -42,13 +43,40 @@ namespace ObjectInitializer_AssignAll
 
         private void AnalyzeObjectInitializer(SyntaxNodeAnalysisContext ctx)
         {
-            var memberInitialisers = ctx.Node.ChildNodes()
+            var objectInitializer = (InitializerExpressionSyntax)ctx.Node;
+
+            // Should be direct parent of ObjectInitializerExpression
+            ObjectCreationExpressionSyntax objectCreation =
+                objectInitializer.Ancestors().OfType<ObjectCreationExpressionSyntax>().First();
+
+            SymbolInfo symbolInfo = ctx.SemanticModel.GetSymbolInfo(objectCreation.Type);
+
+            List<IPropertySymbol> propSymbols =
+                ((INamedTypeSymbol) symbolInfo.Symbol).GetMembers()
+                .OfType<IPropertySymbol>()
+                .Where(m => !m.IsIndexer && !m.IsReadOnly)
+                .ToList();
+
+            var propAssignmentSyntax = objectInitializer.ChildNodes()
                 .OfType<AssignmentExpressionSyntax>()
-                .Select(memberInitializer => new
+                .Select(assignmentSyntax => new
                 {
-                    PropertyName = ((IdentifierNameSyntax) memberInitializer.Left).Identifier.ValueText,
-                    ValueExpression = memberInitializer.Right
+                    PropertyName = ((IdentifierNameSyntax) assignmentSyntax.Left).Identifier.ValueText,
+                    ValueExpression = assignmentSyntax.Right
                 });
+
+            List<IPropertySymbol> assignedPropSymbols = propSymbols.Join(propAssignmentSyntax, propSymbol => propSymbol.Name,
+                memberInitializer => memberInitializer.PropertyName,
+                (propSymbol, memberInitializer) => propSymbol)
+                .ToList();
+
+            List<IPropertySymbol> propsNotAssigned = propSymbols.Except(assignedPropSymbols).ToList();
+            if (propsNotAssigned.Any())
+            {
+                // For all such symbols, produce a diagnostic.
+                Diagnostic diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), symbolInfo.Symbol.Name);
+                ctx.ReportDiagnostic(diagnostic);
+            }
         }
 
         private static void AnalyzeSymbol(SymbolAnalysisContext context)
