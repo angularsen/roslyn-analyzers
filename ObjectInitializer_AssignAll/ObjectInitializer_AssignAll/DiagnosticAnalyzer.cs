@@ -34,16 +34,12 @@ namespace ObjectInitializer_AssignAll
 
         public override void Initialize(AnalysisContext context)
         {
-            // TODO: Consider registering other actions that act on syntax instead of or in addition to symbols
-            // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
-//            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
-//            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.);
             context.RegisterSyntaxNodeAction(AnalyzeObjectInitializer, SyntaxKind.ObjectInitializerExpression);
         }
 
         private void AnalyzeObjectInitializer(SyntaxNodeAnalysisContext ctx)
         {
-            var objectInitializer = (InitializerExpressionSyntax)ctx.Node;
+            InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax) ctx.Node;
 
             // Should be direct parent of ObjectInitializerExpression
             ObjectCreationExpressionSyntax objectCreation =
@@ -65,10 +61,11 @@ namespace ObjectInitializer_AssignAll
                     ValueExpression = assignmentSyntax.Right
                 });
 
-            List<IPropertySymbol> assignedPropSymbols = propSymbols.Join(propAssignmentSyntax, propSymbol => propSymbol.Name,
-                memberInitializer => memberInitializer.PropertyName,
-                (propSymbol, memberInitializer) => propSymbol)
-                .ToList();
+            List<IPropertySymbol> assignedPropSymbols =
+                propSymbols.Join(propAssignmentSyntax, propSymbol => propSymbol.Name,
+                        memberInitializer => memberInitializer.PropertyName,
+                        (propSymbol, memberInitializer) => propSymbol)
+                    .ToList();
 
             List<IPropertySymbol> propsNotAssigned = propSymbols.Except(assignedPropSymbols).ToList();
             if (propsNotAssigned.Any())
