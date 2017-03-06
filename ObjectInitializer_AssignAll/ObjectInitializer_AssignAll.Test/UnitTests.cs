@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestHelper;
@@ -29,9 +28,8 @@ namespace SampleConsoleApp
         {
             Foo foo = new Foo
             {
-                Prop1 = 1,
-                Prop2 = ""2"",
-                Field3 = true
+                PropInt = 1,
+                PropString = ""2"",
             };
         }
 
@@ -39,13 +37,6 @@ namespace SampleConsoleApp
         {
             public int PropInt { get; set; }
             public string PropString { get; }
-            public int PropIntReadOnly { get; }
-            public bool FieldBool;
-            public readonly bool FieldBoolReadOnly;
-            public int this[int val] => val;
-
-            public void MethodVoid() { }
-            public int MethodInt() => 1;
         }
     }
 }        
@@ -151,10 +142,10 @@ namespace SampleConsoleApp
 //            VerifyCSharpFix(test, fixtest);
 //        }
 
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
-        {
-            return new ObjectInitializer_AssignAllCodeFixProvider();
-        }
+//        protected override CodeFixProvider GetCSharpCodeFixProvider()
+//        {
+//            return new ObjectInitializer_AssignAllCodeFixProvider();
+//        }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
