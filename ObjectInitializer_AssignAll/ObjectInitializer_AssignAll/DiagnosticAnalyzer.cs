@@ -27,7 +27,7 @@ namespace ObjectInitializer_AssignAll
                 typeof(Resources));
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat,
-            Category, DiagnosticSeverity.Warning, true, Description);
+            Category, DiagnosticSeverity.Error, true, Description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
