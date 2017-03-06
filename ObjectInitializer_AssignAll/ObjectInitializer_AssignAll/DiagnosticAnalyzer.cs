@@ -11,7 +11,7 @@ namespace ObjectInitializer_AssignAll
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ObjectInitializer_AssignAllAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "ObjectInitializer_AssignAll";
+        private const string DiagnosticId = "ObjectInitializer_AssignAll";
         private const string Category = "Naming";
 
         // You can change these strings in the Resources.resx file. If you do not want your analyzer to be localize-able, you can use regular strings for Title and MessageFormat.
@@ -37,7 +37,7 @@ namespace ObjectInitializer_AssignAll
             context.RegisterSyntaxNodeAction(AnalyzeObjectInitializer, SyntaxKind.ObjectInitializerExpression);
         }
 
-        private void AnalyzeObjectInitializer(SyntaxNodeAnalysisContext ctx)
+        private static void AnalyzeObjectInitializer(SyntaxNodeAnalysisContext ctx)
         {
             InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax) ctx.Node;
 
