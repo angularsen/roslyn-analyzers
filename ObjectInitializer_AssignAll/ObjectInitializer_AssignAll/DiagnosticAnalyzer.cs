@@ -73,8 +73,10 @@ namespace ObjectInitializer_AssignAll
 
             if (unassignedMemberNames.Any())
             {
-                // For all such symbols, produce a diagnostic.
-                Diagnostic diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), symbolInfo.Symbol.Name);
+                string unassignedMembersString = string.Join(", ", unassignedMemberNames);
+
+                Diagnostic diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), symbolInfo.Symbol.Name,
+                    unassignedMembersString);
                 ctx.ReportDiagnostic(diagnostic);
             }
         }

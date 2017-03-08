@@ -71,7 +71,7 @@ namespace ObjectInitializer_AssignAll {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One or more properties/fields are not assigned in object initializer for type &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Missing assignment for members of type &apos;{0}&apos;: {1}.
         /// </summary>
         internal static string AnalyzerMessageFormat {
             get {
