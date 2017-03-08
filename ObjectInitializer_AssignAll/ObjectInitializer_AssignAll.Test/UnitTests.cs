@@ -209,6 +209,39 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent, expected);
         }
 
+        /// <remarks>TODO Revisit this when the implementation supports looking at context and whether the member can be assigned or not.</remarks>
+        [TestMethod]
+        public void NonPublicFieldsNotAssigned_Ok()
+        {
+            string[] accessModifiers = {"private", "internal", "protected", "protected internal"};
+            foreach (string accessModifier in accessModifiers)
+            {
+                var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            var foo = new Foo
+            {
+                // The implementation is currently limited to public only, so all other access modifiers will be ignored
+                // FieldInt = 1,
+            };
+        }
+
+        private class Foo
+        {
+            {{accessModifier}} int FieldInt;
+        }
+    }
+}
+".Replace("{{accessModifier}}", accessModifier);
+
+                VerifyCSharpDiagnostic(testContent);
+            }
+        }
+
         [TestMethod]
         public void UnassignedMembersWithoutObjectInitializer_Ok()
         {
