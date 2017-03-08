@@ -49,6 +49,65 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
+        public void CommentsCanEnableAndDisableAnalyzerForTextSpans()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            Foo foo = new Foo
+            {
+                // PropInt not assigned, diagnostic error
+                // PropInt = 1,
+
+                // Roslyn disable analyzer ObjectInitializer_AssignAll
+                Bar = new Bar
+                {
+                    // PropInt not assigned, but analyzer is disabled, no diagnostic error
+                    // PropInt = 2,
+
+                    // Re-enable analzyer for Baz creation
+                    // Roslyn enable analyzer ObjectInitializer_AssignAll
+                    Baz = new Baz
+                    {
+                        // PropInt not assigned, diagnostic error
+                        // PropInt = 3,
+                    }
+                }
+            };
+        }
+
+        private class Foo
+        {
+            public int PropInt { get; set; }
+            public Bar Bar { get; internal set; }
+        }
+
+        private class Bar
+        {
+            public int PropInt { get; set; }
+        }
+
+        private class Baz
+        {
+            public int PropInt { get; set; }
+        }
+    }
+}        
+";
+
+            // Bar type has no diagnostic errors
+            VerifyCSharpDiagnostic(testContent,
+                GetMissingAssignmentDiagnosticResult("Foo", 10, 13, "PropInt"),
+                GetMissingAssignmentDiagnosticResult("Baz", 23, 21, "PropInt")
+            );
+        }
+
+        [TestMethod]
         public void PropertiesNotAssigned_AddsDiagnosticWithPropertyNames()
         {
             var testContent = @"
@@ -89,7 +148,6 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
             var foo = new Foo
             {
                 // Diagnostics should flag that these properties are not set
@@ -106,8 +164,7 @@ namespace SampleConsoleApp
     }
 }
 ";
-            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("PropInt", "PropString");
-            VerifyCSharpDiagnostic(testContent, expected);
+            VerifyCSharpDiagnostic(testContent);
         }
 
 
@@ -363,16 +420,14 @@ namespace SampleConsoleApp
             return new ObjectInitializer_AssignAllAnalyzer();
         }
 
-        private static DiagnosticResult GetMissingAssignmentDiagnosticResult(params string[] unassignedMemberNames)
+        private static DiagnosticResult GetMissingAssignmentDiagnosticResult(string createdObjectTypeName, int line, int column,
+            params string[] unassignedMemberNames)
         {
-            // Code snippets are identical up to the object initializer
-            const int line = 10;
-            const int column = 13;
             string unassignedMembersString = string.Join(", ", unassignedMemberNames);
             DiagnosticResult expected = new DiagnosticResult
             {
                 Id = "ObjectInitializer_AssignAll",
-                Message = $"Missing assignment for members of type 'Foo': {unassignedMembersString}",
+                Message = $"Missing assignment for members of type '{createdObjectTypeName}': {unassignedMembersString}",
                 Severity = DiagnosticSeverity.Error,
                 Locations =
                     new[]
@@ -381,6 +436,14 @@ namespace SampleConsoleApp
                     }
             };
             return expected;
+        }
+
+        private static DiagnosticResult GetMissingAssignmentDiagnosticResult(params string[] unassignedMemberNames)
+        {
+            // Most code snippets in the tests are identical up to the object initializer
+            const int line = 10;
+            const int column = 13;
+            return GetMissingAssignmentDiagnosticResult("Foo", line, column, unassignedMemberNames);
         }
     }
 }

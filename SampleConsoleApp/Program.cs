@@ -4,20 +4,27 @@
     {
         private static void Main(string[] args)
         {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
             Foo foo = new Foo
             {
-                Prop1 = 1,
-                // Diagnostics should flag that this property is not set
-//                Prop2 = "2",
-                Field3 = true
+                PropInt = 1,
+                // Roslyn disable analyzer ObjectInitializer_AssignAll
+                Bar = new Bar
+                {
+                    //PropInt = 2
+                }
             };
         }
 
         private class Foo
         {
-            public int Prop1 { get; set; }
-            public string Prop2 { get; set; }
-            public bool Field3 { get; set; }
+            public int PropInt { get; set; }
+            public Bar Bar { get; internal set; }
+        }
+
+        private class Bar
+        {
+            public int PropInt { get; set; }
         }
     }
 }

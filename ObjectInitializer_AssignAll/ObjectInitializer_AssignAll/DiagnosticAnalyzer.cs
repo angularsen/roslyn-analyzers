@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -5,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace ObjectInitializer_AssignAll
 {
@@ -32,127 +34,141 @@ namespace ObjectInitializer_AssignAll
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(AnalysisContext ctx)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeObjectInitializer, SyntaxKind.ObjectInitializerExpression);
+            ctx.RegisterCodeBlockStartAction<SyntaxKind>(startCodeBlockContext =>
+            {
+
+                var analyzer = new UnassignedMemberAnalyzer(startCodeBlockContext);
+
+            });
         }
 
-        private static void AnalyzeObjectInitializer(SyntaxNodeAnalysisContext ctx)
+        private class UnassignedMemberAnalyzer
         {
-            InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax) ctx.Node;
+            private const string EnableAnalyzerCommentPattern = "Roslyn enable analyzer ObjectInitializer_AssignAll";
+            private const string DisableAnalyzerCommentPattern = "Roslyn disable analyzer ObjectInitializer_AssignAll";
+            private readonly ImmutableArray<TextSpan> _analyzerEnabledInTextSpans;
 
-            // Should be direct parent of ObjectInitializerExpression
-            var objectCreation = objectInitializer.Parent as ObjectCreationExpressionSyntax;
+            public UnassignedMemberAnalyzer(CodeBlockStartAnalysisContext<SyntaxKind> startCodeBlockContext)
+            {
+                var singleLineComments = startCodeBlockContext.CodeBlock.DescendantTrivia()
+                    .Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                    .OrderBy(x => x.SpanStart);
 
-            // Only handle initializers immediately following object creation,
-            // not sure what the scenario would be since we are only registered for
-            // object initializers, not things like list/collection initializers.
-            if (objectCreation == null)
-                return;
+                var enabledTextSpans = new List<TextSpan>();
+                foreach (SyntaxTrivia comment in singleLineComments)
+                {
+                    string commentText = comment.ToString().Replace("//", "").Trim();
+                    if (commentText.Equals(EnableAnalyzerCommentPattern, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Start of enable analyzer text span
+                        enabledTextSpans.Add(new TextSpan(comment.SpanStart,
+                            startCodeBlockContext.CodeBlock.Span.End - comment.SpanStart));
+                    }
+                    else if (commentText.Equals(DisableAnalyzerCommentPattern, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // End of enable analyzer text span
+                        TextSpan? currentEnabledTextSpan = enabledTextSpans.Cast<TextSpan?>().LastOrDefault();
+                        if (currentEnabledTextSpan == null) continue;
 
-            // For now, only perform analysis when explicitly enabled by comment
-            // TODO Support other means to enable, such as static configuration (analyze all/none by default), attributes on types and members
-            bool isEnabledByComment = IsAnalysisEnabledByLeadingComment(objectCreation);
-            if (!isEnabledByComment)
-                return;
+                        int spanLength = comment.Span.Start - currentEnabledTextSpan.Value.Start;
 
-            SymbolInfo symbolInfo = ctx.SemanticModel.GetSymbolInfo(objectCreation.Type);
+                        // Update TextSpan in list
+                        enabledTextSpans.RemoveAt(enabledTextSpans.Count - 1);
+                        enabledTextSpans.Add(new TextSpan(currentEnabledTextSpan.Value.Start, spanLength));
+                    }
+                }
 
-            ImmutableArray<ISymbol> members = ((INamedTypeSymbol) symbolInfo.Symbol).GetMembers();
+                _analyzerEnabledInTextSpans = enabledTextSpans.ToImmutableArray();
 
-            List<string> assignedMemberNames = objectInitializer.ChildNodes()
-                .OfType<AssignmentExpressionSyntax>()
-                .Select(assignmentSyntax => ((IdentifierNameSyntax) assignmentSyntax.Left).Identifier.ValueText)
-                .ToList();
+                startCodeBlockContext.RegisterSyntaxNodeAction(AnalyzeObjectInitializer,
+                    SyntaxKind.ObjectInitializerExpression);
 
+                // Register an end action to report diagnostics based on the final state.
+                startCodeBlockContext.RegisterCodeBlockEndAction(CodeBlockEndAction);
+            }
 
-            // TODO Check if member is assignable using Roslyn data flow analysis instead of these constraints,
-            // as that is the only way to properly determine if it is assignable or not in a context
-            IEnumerable<ISymbol> assignableProperties = members
-                .OfType<IPropertySymbol>()
-                .Where(m =>
-                    // Exclude indexer properties
-                        !m.IsIndexer &&
-                        // Exclude read-only getter properties
-                        !m.IsReadOnly &&
-                        // Simplification, only care about public members
-                        m.DeclaredAccessibility == Accessibility.Public);
+            private void CodeBlockEndAction(CodeBlockAnalysisContext ctx)
+            {
+                // Keep-alive instance from garbage collector
+            }
 
-            IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
-                .Where(m =>
-                    // Exclude readonly fields
-                        !m.IsReadOnly &&
-                        // Exclude const fields
-                        !m.HasConstantValue &&
-                        // Exclude generated backing fields for properties
-                        !m.IsImplicitlyDeclared &&
-                        // Simplification, only care about public members
-                        m.DeclaredAccessibility == Accessibility.Public);
+            private void AnalyzeObjectInitializer(SyntaxNodeAnalysisContext ctx)
+            {
+                InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax)ctx.Node;
 
-            IEnumerable<string> assignableMemberNames = assignableProperties
-                .Concat(assignableFields)
-                .Select(x => x.Name);
+                // Should be direct parent of ObjectInitializerExpression
+                var objectCreation = objectInitializer.Parent as ObjectCreationExpressionSyntax;
 
-            List<string> unassignedMemberNames =
-                assignableMemberNames
-                    .Except(assignedMemberNames)
+                // Only handle initializers immediately following object creation,
+                // not sure what the scenario would be since we are only registered for
+                // object initializers, not things like list/collection initializers.
+                if (objectCreation == null)
+                    return;
+
+                // For now, only perform analysis when explicitly enabled by comment.
+                // TODO Support other means to enable, such as static configuration (analyze all/none by default), attributes on types and members
+                bool isEnabledByComment = IsAnalysisEnabledForSyntaxPosition(objectCreation);
+                if (!isEnabledByComment)
+                    return;
+
+                SymbolInfo symbolInfo = ctx.SemanticModel.GetSymbolInfo(objectCreation.Type);
+
+                ImmutableArray<ISymbol> members = ((INamedTypeSymbol)symbolInfo.Symbol).GetMembers();
+
+                List<string> assignedMemberNames = objectInitializer.ChildNodes()
+                    .OfType<AssignmentExpressionSyntax>()
+                    .Select(assignmentSyntax => ((IdentifierNameSyntax)assignmentSyntax.Left).Identifier.ValueText)
                     .ToList();
 
-            if (unassignedMemberNames.Any())
-            {
-                string unassignedMembersString = string.Join(", ", unassignedMemberNames);
 
-                Diagnostic diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), symbolInfo.Symbol.Name,
-                    unassignedMembersString);
-                ctx.ReportDiagnostic(diagnostic);
-            }
-        }
+                // TODO Check if member is assignable using Roslyn data flow analysis instead of these constraints,
+                // as that is the only way to properly determine if it is assignable or not in a context
+                IEnumerable<ISymbol> assignableProperties = members
+                    .OfType<IPropertySymbol>()
+                    .Where(m =>
+                            // Exclude indexer properties
+                            !m.IsIndexer &&
+                            // Exclude read-only getter properties
+                            !m.IsReadOnly &&
+                            // Simplification, only care about public members
+                            m.DeclaredAccessibility == Accessibility.Public);
 
-        private static bool IsAnalysisEnabledByLeadingComment(ObjectCreationExpressionSyntax objectCreation)
-        {
-            // Case 1: Comment before variable declaration and assignment:
-            // <comment here>
-            // Foo foo = new Foo { .. };
-            if (new[] {SyntaxKind.EqualsValueClause, SyntaxKind.VariableDeclarator, SyntaxKind.VariableDeclaration}
-                .SequenceEqual(objectCreation.Ancestors().Take(3).Select(x => x.Kind())))
-            {
-                var variableDeclaration = (VariableDeclarationSyntax)objectCreation.Ancestors().Skip(2).First();
-                IdentifierNameSyntax identifierName =
-                    variableDeclaration.ChildNodes().OfType<IdentifierNameSyntax>().First();
+                IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
+                    .Where(m =>
+                            // Exclude readonly fields
+                            !m.IsReadOnly &&
+                            // Exclude const fields
+                            !m.HasConstantValue &&
+                            // Exclude generated backing fields for properties
+                            !m.IsImplicitlyDeclared &&
+                            // Simplification, only care about public members
+                            m.DeclaredAccessibility == Accessibility.Public);
 
-                SyntaxTrivia[] singleLineComments =
-                    identifierName.Identifier.LeadingTrivia.Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                        .ToArray();
+                IEnumerable<string> assignableMemberNames = assignableProperties
+                    .Concat(assignableFields)
+                    .Select(x => x.Name);
 
-                return singleLineComments.Any(IsSingleLineCommentForEnablingAnalyzer);
-            }
+                List<string> unassignedMemberNames =
+                    assignableMemberNames
+                        .Except(assignedMemberNames)
+                        .ToList();
 
-            // Case 2: Comment before assignment
-            // Foo foo;
-            // <comment here>
-            // foo = new Foo { .. };
-            // Did not recognize syntax to locate leading comment for object initializer
-            if (new[] {SyntaxKind.SimpleAssignmentExpression}
-                .SequenceEqual(objectCreation.Ancestors().Take(1).Select(x => x.Kind())))
-            {
-                var assignmentExpression = (AssignmentExpressionSyntax) objectCreation.Ancestors().First();
-                IdentifierNameSyntax identifierName =
-                    assignmentExpression.ChildNodes().OfType<IdentifierNameSyntax>().First();
+                if (unassignedMemberNames.Any())
+                {
+                    string unassignedMembersString = string.Join(", ", unassignedMemberNames);
 
-                SyntaxTrivia[] singleLineComments =
-                    identifierName.Identifier.LeadingTrivia.Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                        .ToArray();
-
-                return singleLineComments.Any(IsSingleLineCommentForEnablingAnalyzer);
+                    Diagnostic diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), symbolInfo.Symbol.Name,
+                        unassignedMembersString);
+                    ctx.ReportDiagnostic(diagnostic);
+                }
             }
 
-            // Did not recognize syntax to locate leading comment
-            return false;
-        }
-
-        private static bool IsSingleLineCommentForEnablingAnalyzer(SyntaxTrivia comment)
-        {
-            return comment.ToString().StartsWith("// Roslyn enable analyzer ObjectInitializer_AssignAll");
-        }
+            private bool IsAnalysisEnabledForSyntaxPosition(ObjectCreationExpressionSyntax objectCreation)
+            {
+                return _analyzerEnabledInTextSpans.Any(span => span.IntersectsWith(objectCreation.Span));
+            }
+       }
     }
 }
