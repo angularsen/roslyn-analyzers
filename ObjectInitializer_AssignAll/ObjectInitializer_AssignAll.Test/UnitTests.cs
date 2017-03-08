@@ -209,14 +209,17 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent, expected);
         }
 
-        /// <remarks>TODO Revisit this when the implementation supports looking at context and whether the member can be assigned or not.</remarks>
+        /// <remarks>
+        ///     TODO Revisit this when the implementation supports looking at context and whether the member can be assigned
+        ///     or not.
+        /// </remarks>
         [TestMethod]
         public void NonPublicFieldsNotAssigned_Ok()
         {
             string[] accessModifiers = {"private", "internal", "protected", "protected internal"};
             foreach (string accessModifier in accessModifiers)
             {
-                var testContent = @"
+                string testContent = @"
 namespace SampleConsoleApp
 {
     internal static class Program

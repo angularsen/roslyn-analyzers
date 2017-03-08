@@ -68,15 +68,15 @@ namespace ObjectInitializer_AssignAll
                         m.DeclaredAccessibility == Accessibility.Public);
 
             IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
-                .Where(m => 
-                // Exclude readonly fields
-                !m.IsReadOnly &&
-                // Exclude const fields
-                !m.HasConstantValue &&
-                // Exclude generated backing fields for properties
-                !m.IsImplicitlyDeclared && 
-                // Simplification, only care about public members
-                m.DeclaredAccessibility == Accessibility.Public);
+                .Where(m =>
+                    // Exclude readonly fields
+                        !m.IsReadOnly &&
+                        // Exclude const fields
+                        !m.HasConstantValue &&
+                        // Exclude generated backing fields for properties
+                        !m.IsImplicitlyDeclared &&
+                        // Simplification, only care about public members
+                        m.DeclaredAccessibility == Accessibility.Public);
 
             IEnumerable<string> assignableMemberNames = assignableProperties
                 .Concat(assignableFields)
