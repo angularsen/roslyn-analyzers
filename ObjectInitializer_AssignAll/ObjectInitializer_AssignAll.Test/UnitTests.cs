@@ -10,14 +10,14 @@ namespace ObjectInitializer_AssignAll.Test
     {
         // No diagnostics expected to show up
         [TestMethod]
-        public void EmptyCode_ReturnsNoDiagnostics()
+        public void EmptyCode_AddsNoDiagnostics()
         {
             var test = @"";
             VerifyCSharpDiagnostic(test);
         }
 
         [TestMethod]
-        public void AllPropertiesAssigned_ReturnsNoDiagnostics()
+        public void AllPropertiesAndFieldsAssigned_AddsNoDiagnostics()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -26,10 +26,12 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
             Foo foo = new Foo
             {
                 PropInt = 1,
                 PropString = ""2"",
+                FieldBool = true
             };
         }
 
@@ -37,6 +39,7 @@ namespace SampleConsoleApp
         {
             public int PropInt { get; set; }
             public string PropString { get; }
+            public bool FieldBool;
         }
     }
 }        
@@ -46,7 +49,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void PropertiesNotAssigned_PropertyNamesIncludedInDiagnostics()
+        public void PropertiesNotAssigned_AddsDiagnosticWithPropertyNames()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -55,6 +58,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
             var foo = new Foo
             {
                 // Diagnostics should flag that these properties are not set
@@ -76,7 +80,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void IndexerPropertyNotAssigned_Ok()
+        public void PropertiesNotAssigned_NoCommentToEnableAnalyzer_AddsNoDiagnostics()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -85,6 +89,39 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            var foo = new Foo
+            {
+                // Diagnostics should flag that these properties are not set
+                // PropInt = 1,
+                // PropString = ""my string""
+            };
+        }
+
+        private class Foo
+        {
+            public int PropInt { get; set; }
+            public string PropString { get; set; }
+        }
+    }
+}
+";
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("PropInt", "PropString");
+            VerifyCSharpDiagnostic(testContent, expected);
+        }
+
+
+        [TestMethod]
+        public void IndexerPropertyNotAssigned_AddsNoDiagnostics()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
             var foo = new Foo
             {
             };
@@ -101,7 +138,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void MethodsNotAssigned_Ok()
+        public void MethodsNotAssigned_AddsNoDiagnostics()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -110,6 +147,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
             var foo = new Foo
             {
             };
@@ -127,7 +165,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void ReadOnlyPropertyNotAssigned_Ok()
+        public void ReadOnlyPropertyNotAssigned_AddsNoDiagnostics()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -136,6 +174,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
             var foo = new Foo
             {
                 // Cannot assign read-only property
@@ -154,7 +193,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void ReadOnlyFieldNotAssigned_Ok()
+        public void ReadOnlyFieldNotAssigned_AddsNoDiagnostics()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -163,6 +202,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
             var foo = new Foo
             {
                 // Cannot assign read-only field
@@ -181,7 +221,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void ListInitializer_NoDiagnostic()
+        public void ListInitializer_AddsNoDiagnostics()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -199,7 +239,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void FieldNotAssigned_Error()
+        public void FieldNotAssigned_NoCommentToEnableAnalyzer_AddsNoDiagnostics()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -208,6 +248,35 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
+            // Here is missing comment to enable analyzer
+            var foo = new Foo
+            {
+                // Not assigned, should give error
+                // FieldInt = 1,
+            };
+        }
+
+        private class Foo
+        {
+            public int FieldInt;
+        }
+    }
+}
+";
+            VerifyCSharpDiagnostic(testContent);
+        }
+
+        [TestMethod]
+        public void FieldNotAssigned_AddsDiagnosticWithFieldName()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
             var foo = new Foo
             {
                 // Not assigned, should give error
@@ -231,7 +300,7 @@ namespace SampleConsoleApp
         ///     or not.
         /// </remarks>
         [TestMethod]
-        public void NonPublicFieldsNotAssigned_Ok()
+        public void NonPublicFieldsNotAssigned_AddsNoDiagnostics()
         {
             string[] accessModifiers = {"private", "internal", "protected", "protected internal"};
             foreach (string accessModifier in accessModifiers)
@@ -243,6 +312,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
             var foo = new Foo
             {
                 // The implementation is currently limited to public only, so all other access modifiers will be ignored
@@ -263,7 +333,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void UnassignedMembersWithoutObjectInitializer_Ok()
+        public void UnassignedMembersWithoutObjectInitializer_AddsNoDiagnostics()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -273,6 +343,7 @@ namespace SampleConsoleApp
         private static void Main(string[] args)
         {
             // Unassigned properties and fields are ignored for this type of construction
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
             var foo = new Foo();
             // foo.FieldInt = 1;
         }
@@ -295,7 +366,7 @@ namespace SampleConsoleApp
         private static DiagnosticResult GetMissingAssignmentDiagnosticResult(params string[] unassignedMemberNames)
         {
             // Code snippets are identical up to the object initializer
-            const int line = 9;
+            const int line = 10;
             const int column = 13;
             string unassignedMembersString = string.Join(", ", unassignedMemberNames);
             DiagnosticResult expected = new DiagnosticResult

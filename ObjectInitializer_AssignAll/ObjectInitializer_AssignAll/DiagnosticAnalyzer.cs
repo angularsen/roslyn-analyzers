@@ -50,6 +50,12 @@ namespace ObjectInitializer_AssignAll
             if (objectCreation == null)
                 return;
 
+            // For now, only perform analysis when explicitly enabled by comment
+            // TODO Support other means to enable, such as static configuration (analyze all/none by default), attributes on types and members
+            bool isEnabledByComment = IsAnalysisEnabledByLeadingComment(objectCreation);
+            if (!isEnabledByComment)
+                return;
+
             SymbolInfo symbolInfo = ctx.SemanticModel.GetSymbolInfo(objectCreation.Type);
 
             ImmutableArray<ISymbol> members = ((INamedTypeSymbol) symbolInfo.Symbol).GetMembers();
@@ -100,6 +106,53 @@ namespace ObjectInitializer_AssignAll
                     unassignedMembersString);
                 ctx.ReportDiagnostic(diagnostic);
             }
+        }
+
+        private static bool IsAnalysisEnabledByLeadingComment(ObjectCreationExpressionSyntax objectCreation)
+        {
+            // Case 1: Comment before variable declaration and assignment:
+            // <comment here>
+            // Foo foo = new Foo { .. };
+            if (new[] {SyntaxKind.EqualsValueClause, SyntaxKind.VariableDeclarator, SyntaxKind.VariableDeclaration}
+                .SequenceEqual(objectCreation.Ancestors().Take(3).Select(x => x.Kind())))
+            {
+                var variableDeclaration = (VariableDeclarationSyntax)objectCreation.Ancestors().Skip(2).First();
+                IdentifierNameSyntax identifierName =
+                    variableDeclaration.ChildNodes().OfType<IdentifierNameSyntax>().First();
+
+                SyntaxTrivia[] singleLineComments =
+                    identifierName.Identifier.LeadingTrivia.Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                        .ToArray();
+
+                return singleLineComments.Any(IsSingleLineCommentForEnablingAnalyzer);
+            }
+
+            // Case 2: Comment before assignment
+            // Foo foo;
+            // <comment here>
+            // foo = new Foo { .. };
+            // Did not recognize syntax to locate leading comment for object initializer
+            if (new[] {SyntaxKind.SimpleAssignmentExpression}
+                .SequenceEqual(objectCreation.Ancestors().Take(1).Select(x => x.Kind())))
+            {
+                var assignmentExpression = (AssignmentExpressionSyntax) objectCreation.Ancestors().First();
+                IdentifierNameSyntax identifierName =
+                    assignmentExpression.ChildNodes().OfType<IdentifierNameSyntax>().First();
+
+                SyntaxTrivia[] singleLineComments =
+                    identifierName.Identifier.LeadingTrivia.Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                        .ToArray();
+
+                return singleLineComments.Any(IsSingleLineCommentForEnablingAnalyzer);
+            }
+
+            // Did not recognize syntax to locate leading comment
+            return false;
+        }
+
+        private static bool IsSingleLineCommentForEnablingAnalyzer(SyntaxTrivia comment)
+        {
+            return comment.ToString().StartsWith("// Roslyn enable analyzer ObjectInitializer_AssignAll");
         }
     }
 }
