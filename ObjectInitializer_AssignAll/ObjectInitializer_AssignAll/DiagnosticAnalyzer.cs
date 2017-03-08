@@ -55,12 +55,28 @@ namespace ObjectInitializer_AssignAll
                 .ToList();
 
 
+            // TODO Check if member is assignable using Roslyn data flow analysis instead of these constraints,
+            // as that is the only way to properly determine if it is assignable or not in a context
             IEnumerable<ISymbol> assignableProperties = members
                 .OfType<IPropertySymbol>()
-                .Where(m => !m.IsIndexer && !m.IsReadOnly && !assignedMemberNames.Contains(m.Name));
+                .Where(m =>
+                    // Exclude indexer properties
+                        !m.IsIndexer &&
+                        // Exclude read-only getter properties
+                        !m.IsReadOnly &&
+                        // Simplification, only care about public members
+                        m.DeclaredAccessibility == Accessibility.Public);
 
             IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
-                .Where(m => !m.IsReadOnly && !m.HasConstantValue);
+                .Where(m => 
+                // Exclude readonly fields
+                !m.IsReadOnly &&
+                // Exclude const fields
+                !m.HasConstantValue &&
+                // Exclude generated backing fields for properties
+                !m.IsImplicitlyDeclared && 
+                // Simplification, only care about public members
+                m.DeclaredAccessibility == Accessibility.Public);
 
             IEnumerable<string> assignableMemberNames = assignableProperties
                 .Concat(assignableFields)
