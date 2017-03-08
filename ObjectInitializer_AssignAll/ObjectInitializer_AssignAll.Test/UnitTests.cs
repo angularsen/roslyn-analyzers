@@ -8,7 +8,7 @@ namespace ObjectInitializer_AssignAll.Test
     [TestClass]
     public class UnitTest : CodeFixVerifier
     {
-        //No diagnostics expected to show up
+        // No diagnostics expected to show up
         [TestMethod]
         public void EmptyCode_ReturnsNoDiagnostics()
         {
@@ -180,6 +180,23 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
+        [TestMethod]
+        public void ListInitializer_NoDiagnostic()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            var foo = new List<int> { 1, 2, 3 };
+        }
+    }
+}
+";
+            VerifyCSharpDiagnostic(testContent);
+        }
 
         [TestMethod]
         public void FieldNotAssigned_Error()
