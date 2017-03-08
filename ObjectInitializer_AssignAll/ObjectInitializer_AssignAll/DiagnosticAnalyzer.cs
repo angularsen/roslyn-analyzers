@@ -47,28 +47,31 @@ namespace ObjectInitializer_AssignAll
 
             SymbolInfo symbolInfo = ctx.SemanticModel.GetSymbolInfo(objectCreation.Type);
 
-            List<IPropertySymbol> propSymbols =
-                ((INamedTypeSymbol) symbolInfo.Symbol).GetMembers()
-                .OfType<IPropertySymbol>()
-                .Where(m => !m.IsIndexer && !m.IsReadOnly)
+            ImmutableArray<ISymbol> members = ((INamedTypeSymbol) symbolInfo.Symbol).GetMembers();
+
+            List<string> assignedMemberNames = objectInitializer.ChildNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .Select(assignmentSyntax => ((IdentifierNameSyntax) assignmentSyntax.Left).Identifier.ValueText)
                 .ToList();
 
-            var propAssignmentSyntax = objectInitializer.ChildNodes()
-                .OfType<AssignmentExpressionSyntax>()
-                .Select(assignmentSyntax => new
-                {
-                    PropertyName = ((IdentifierNameSyntax) assignmentSyntax.Left).Identifier.ValueText,
-                    ValueExpression = assignmentSyntax.Right
-                });
 
-            List<IPropertySymbol> assignedPropSymbols =
-                propSymbols.Join(propAssignmentSyntax, propSymbol => propSymbol.Name,
-                        memberInitializer => memberInitializer.PropertyName,
-                        (propSymbol, memberInitializer) => propSymbol)
+            IEnumerable<ISymbol> assignableProperties = members
+                .OfType<IPropertySymbol>()
+                .Where(m => !m.IsIndexer && !m.IsReadOnly && !assignedMemberNames.Contains(m.Name));
+
+            IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
+                .Where(m => !m.IsReadOnly && !m.HasConstantValue);
+
+            IEnumerable<string> assignableMemberNames = assignableProperties
+                .Concat(assignableFields)
+                .Select(x => x.Name);
+
+            List<string> unassignedMemberNames =
+                assignableMemberNames
+                    .Except(assignedMemberNames)
                     .ToList();
 
-            List<IPropertySymbol> propsNotAssigned = propSymbols.Except(assignedPropSymbols).ToList();
-            if (propsNotAssigned.Any())
+            if (unassignedMemberNames.Any())
             {
                 // For all such symbols, produce a diagnostic.
                 Diagnostic diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), symbolInfo.Symbol.Name);

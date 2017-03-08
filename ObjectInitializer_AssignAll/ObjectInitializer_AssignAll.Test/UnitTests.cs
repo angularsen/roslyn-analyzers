@@ -46,7 +46,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void OnePropertyNotAssigned_PropertyFlaggedByDiagnostics()
+        public void PropertyNotAssigned_PropertyFlaggedByDiagnostics()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -78,6 +78,100 @@ namespace SampleConsoleApp
     }
 }
 ";
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult();
+            VerifyCSharpDiagnostic(testContent, expected);
+        }
+
+        [TestMethod]
+        public void ReadOnlyPropertyNotAssigned_Ok()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            var foo = new Foo
+            {
+                // Cannot assign read-only property
+                // PropIntReadOnly = 1,
+            };
+
+        private class Foo
+        {
+            public int PropIntReadOnly { get; }
+        }
+    }
+}
+";
+            VerifyCSharpDiagnostic(testContent);
+        }
+
+        [TestMethod]
+        public void ReadOnlyFieldNotAssigned_Ok()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            var foo = new Foo
+            {
+                // Cannot assign read-only field
+                // FieldIntReadOnly = 1,
+            };
+
+        private class Foo
+        {
+            public readonly int PropIntReadOnly;
+        }
+    }
+}
+";
+            VerifyCSharpDiagnostic(testContent);
+        }
+
+
+        [TestMethod]
+        public void FieldNotAssigned_Error()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            var foo = new Foo
+            {
+                // Not assigned, should give error
+                // FieldInt = 1,
+            };
+
+        private class Foo
+        {
+            public int FieldInt;
+        }
+    }
+}
+";
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult();
+            VerifyCSharpDiagnostic(testContent, expected);
+        }
+
+        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        {
+            return new ObjectInitializer_AssignAllAnalyzer();
+        }
+
+        private static DiagnosticResult GetMissingAssignmentDiagnosticResult()
+        {
+            // Code snippets are identical up to the object initializer
+            const int line = 9;
+            const int column = 13;
             DiagnosticResult expected = new DiagnosticResult
             {
                 Id = "ObjectInitializer_AssignAll",
@@ -86,70 +180,10 @@ namespace SampleConsoleApp
                 Locations =
                     new[]
                     {
-                        new DiagnosticResultLocation("Test0.cs", 9, 13)
+                        new DiagnosticResultLocation("Test0.cs", line, column)
                     }
             };
-
-            VerifyCSharpDiagnostic(testContent, expected);
-        }
-
-//        //Diagnostic and CodeFix both triggered and checked for
-//        [TestMethod]
-//        public void TestMethod2()
-//        {
-//            var test = @"
-//    using System;
-//    using System.Collections.Generic;
-//    using System.Linq;
-//    using System.Text;
-//    using System.Threading.Tasks;
-//    using System.Diagnostics;
-//
-//    namespace ConsoleApplication1
-//    {
-//        class TypeName
-//        {   
-//        }
-//    }";
-//            DiagnosticResult expected = new DiagnosticResult
-//            {
-//                Id = "ObjectInitializer_AssignAll",
-//                Message = string.Format("Type name '{0}' contains lowercase letters", "TypeName"),
-//                Severity = DiagnosticSeverity.Warning,
-//                Locations =
-//                    new[]
-//                    {
-//                        new DiagnosticResultLocation("Test0.cs", 11, 15)
-//                    }
-//            };
-//
-//            VerifyCSharpDiagnostic(test, expected);
-//
-//            var fixtest = @"
-//    using System;
-//    using System.Collections.Generic;
-//    using System.Linq;
-//    using System.Text;
-//    using System.Threading.Tasks;
-//    using System.Diagnostics;
-//
-//    namespace ConsoleApplication1
-//    {
-//        class TYPENAME
-//        {   
-//        }
-//    }";
-//            VerifyCSharpFix(test, fixtest);
-//        }
-
-//        protected override CodeFixProvider GetCSharpCodeFixProvider()
-//        {
-//            return new ObjectInitializer_AssignAllCodeFixProvider();
-//        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new ObjectInitializer_AssignAllAnalyzer();
+            return expected;
         }
     }
 }
