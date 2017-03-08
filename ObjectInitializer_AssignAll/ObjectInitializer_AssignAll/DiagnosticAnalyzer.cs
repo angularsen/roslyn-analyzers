@@ -42,8 +42,13 @@ namespace ObjectInitializer_AssignAll
             InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax) ctx.Node;
 
             // Should be direct parent of ObjectInitializerExpression
-            ObjectCreationExpressionSyntax objectCreation =
-                objectInitializer.Ancestors().OfType<ObjectCreationExpressionSyntax>().First();
+            var objectCreation = objectInitializer.Parent as ObjectCreationExpressionSyntax;
+
+            // Only handle initializers immediately following object creation,
+            // not sure what the scenario would be since we are only registered for
+            // object initializers, not things like list/collection initializers.
+            if (objectCreation == null)
+                return;
 
             SymbolInfo symbolInfo = ctx.SemanticModel.GetSymbolInfo(objectCreation.Type);
 
