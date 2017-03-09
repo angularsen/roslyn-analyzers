@@ -38,9 +38,7 @@ namespace ObjectInitializer_AssignAll
         {
             ctx.RegisterCodeBlockStartAction<SyntaxKind>(startCodeBlockContext =>
             {
-
-                var analyzer = new UnassignedMemberAnalyzer(startCodeBlockContext);
-
+                UnassignedMemberAnalyzer analyzer = new UnassignedMemberAnalyzer(startCodeBlockContext);
             });
         }
 
@@ -48,13 +46,16 @@ namespace ObjectInitializer_AssignAll
         {
             private const string DisableAnalyzerCommentPattern = "Roslyn disable analyzer ObjectInitializer_AssignAll";
             private const string EnableAnalyzerCommentPattern = "Roslyn enable analyzer ObjectInitializer_AssignAll";
-            private const string IgnorePropertiesAnalyzerCommentPattern = "Roslyn ObjectInitializer_AssignAll IgnoreProperties:";
+
+            private const string IgnorePropertiesAnalyzerCommentPattern =
+                "Roslyn ObjectInitializer_AssignAll IgnoreProperties:";
+
             private readonly ImmutableArray<TextSpan> _analyzerEnabledInTextSpans;
             private readonly ImmutableArray<string> _ignoredPropertyNames = ImmutableArray<string>.Empty;
 
             public UnassignedMemberAnalyzer(CodeBlockStartAnalysisContext<SyntaxKind> startCodeBlockContext)
             {
-                var singleLineComments = startCodeBlockContext.CodeBlock.DescendantTrivia()
+                IOrderedEnumerable<SyntaxTrivia> singleLineComments = startCodeBlockContext.CodeBlock.DescendantTrivia()
                     .Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
                     .OrderBy(x => x.SpanStart);
 
@@ -80,7 +81,8 @@ namespace ObjectInitializer_AssignAll
                         enabledTextSpans.RemoveAt(enabledTextSpans.Count - 1);
                         enabledTextSpans.Add(new TextSpan(currentEnabledTextSpan.Value.Start, spanLength));
                     }
-                    else if (commentText.StartsWith(IgnorePropertiesAnalyzerCommentPattern, StringComparison.OrdinalIgnoreCase))
+                    else if (commentText.StartsWith(IgnorePropertiesAnalyzerCommentPattern,
+                        StringComparison.OrdinalIgnoreCase))
                     {
                         string ignorePropertiesText =
                             commentText.Substring(IgnorePropertiesAnalyzerCommentPattern.Length).Trim();
@@ -108,10 +110,11 @@ namespace ObjectInitializer_AssignAll
 
             private void AnalyzeObjectInitializer(SyntaxNodeAnalysisContext ctx)
             {
-                InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax)ctx.Node;
+                InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax) ctx.Node;
 
                 // Should be direct parent of ObjectInitializerExpression
-                var objectCreation = objectInitializer.Parent as ObjectCreationExpressionSyntax;
+                ObjectCreationExpressionSyntax objectCreation =
+                    objectInitializer.Parent as ObjectCreationExpressionSyntax;
 
                 // Only handle initializers immediately following object creation,
                 // not sure what the scenario would be since we are only registered for
@@ -127,11 +130,11 @@ namespace ObjectInitializer_AssignAll
 
                 SymbolInfo symbolInfo = ctx.SemanticModel.GetSymbolInfo(objectCreation.Type);
 
-                ImmutableArray<ISymbol> members = ((INamedTypeSymbol)symbolInfo.Symbol).GetMembers();
+                ImmutableArray<ISymbol> members = ((INamedTypeSymbol) symbolInfo.Symbol).GetMembers();
 
                 List<string> assignedMemberNames = objectInitializer.ChildNodes()
                     .OfType<AssignmentExpressionSyntax>()
-                    .Select(assignmentSyntax => ((IdentifierNameSyntax)assignmentSyntax.Left).Identifier.ValueText)
+                    .Select(assignmentSyntax => ((IdentifierNameSyntax) assignmentSyntax.Left).Identifier.ValueText)
                     .ToList();
 
 
@@ -140,7 +143,7 @@ namespace ObjectInitializer_AssignAll
                 IEnumerable<ISymbol> assignableProperties = members
                     .OfType<IPropertySymbol>()
                     .Where(m =>
-                            // Exclude indexer properties
+                        // Exclude indexer properties
                             !m.IsIndexer &&
                             // Exclude read-only getter properties
                             !m.IsReadOnly &&
@@ -149,7 +152,7 @@ namespace ObjectInitializer_AssignAll
 
                 IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
                     .Where(m =>
-                            // Exclude readonly fields
+                        // Exclude readonly fields
                             !m.IsReadOnly &&
                             // Exclude const fields
                             !m.HasConstantValue &&
@@ -182,6 +185,6 @@ namespace ObjectInitializer_AssignAll
             {
                 return _analyzerEnabledInTextSpans.Any(span => span.IntersectsWith(objectCreation.Span));
             }
-       }
+        }
     }
 }

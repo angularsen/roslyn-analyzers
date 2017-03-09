@@ -460,7 +460,8 @@ namespace SampleConsoleApp
             return new ObjectInitializer_AssignAllAnalyzer();
         }
 
-        private static DiagnosticResult GetMissingAssignmentDiagnosticResult(string createdObjectTypeName, int line, int column,
+        private static DiagnosticResult GetMissingAssignmentDiagnosticResult(string createdObjectTypeName, int line,
+            int column,
             params string[] unassignedMemberNames)
         {
             string unassignedMembersString = string.Join(", ", unassignedMemberNames);
