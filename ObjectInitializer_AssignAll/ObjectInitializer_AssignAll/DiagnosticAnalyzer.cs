@@ -46,9 +46,11 @@ namespace ObjectInitializer_AssignAll
 
         private class UnassignedMemberAnalyzer
         {
-            private const string EnableAnalyzerCommentPattern = "Roslyn enable analyzer ObjectInitializer_AssignAll";
             private const string DisableAnalyzerCommentPattern = "Roslyn disable analyzer ObjectInitializer_AssignAll";
+            private const string EnableAnalyzerCommentPattern = "Roslyn enable analyzer ObjectInitializer_AssignAll";
+            private const string IgnorePropertiesAnalyzerCommentPattern = "Roslyn ObjectInitializer_AssignAll IgnoreProperties:";
             private readonly ImmutableArray<TextSpan> _analyzerEnabledInTextSpans;
+            private readonly ImmutableArray<string> _ignoredPropertyNames = ImmutableArray<string>.Empty;
 
             public UnassignedMemberAnalyzer(CodeBlockStartAnalysisContext<SyntaxKind> startCodeBlockContext)
             {
@@ -77,6 +79,16 @@ namespace ObjectInitializer_AssignAll
                         // Update TextSpan in list
                         enabledTextSpans.RemoveAt(enabledTextSpans.Count - 1);
                         enabledTextSpans.Add(new TextSpan(currentEnabledTextSpan.Value.Start, spanLength));
+                    }
+                    else if (commentText.StartsWith(IgnorePropertiesAnalyzerCommentPattern, StringComparison.OrdinalIgnoreCase))
+                    {
+                        string ignorePropertiesText =
+                            commentText.Substring(IgnorePropertiesAnalyzerCommentPattern.Length).Trim();
+
+                        _ignoredPropertyNames = ignorePropertiesText
+                            .Split(new[] {", ", ","},
+                                StringSplitOptions.RemoveEmptyEntries)
+                            .ToImmutableArray();
                     }
                 }
 
@@ -153,6 +165,7 @@ namespace ObjectInitializer_AssignAll
                 List<string> unassignedMemberNames =
                     assignableMemberNames
                         .Except(assignedMemberNames)
+                        .Except(_ignoredPropertyNames)
                         .ToList();
 
                 if (unassignedMemberNames.Any())

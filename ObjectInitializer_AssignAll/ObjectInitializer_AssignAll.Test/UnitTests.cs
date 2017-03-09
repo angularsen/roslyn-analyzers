@@ -108,6 +108,46 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
+        public void IgnorePropertiesComment_ExcludesPropertiesByNameFromDiagnostic()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // Roslyn ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+            var foo = new Foo
+            {
+                // These properties are not assigned, but also ignored by above comment
+                // PropIgnored1 = 1,
+                // PropIgnored2 = 1,
+
+                // This unassigned property will give diagnostic error
+                // PropUnassigned = 1,
+
+                // Assigned property, OK'ed by analyzer
+                PropAssigned = 1
+            };
+        }
+
+        private class Foo
+        {
+            public int PropIgnored1 { get; set; }
+            public int PropIgnored2 { get; set; }
+            public int PropAssigned { get; set; }
+            public int PropUnassigned { get; set; }
+        }
+    }
+}
+";
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 11, 13, "PropUnassigned");
+            VerifyCSharpDiagnostic(testContent, expected);
+        }
+
+        [TestMethod]
         public void PropertiesNotAssigned_AddsDiagnosticWithPropertyNames()
         {
             var testContent = @"
