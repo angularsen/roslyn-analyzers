@@ -14,7 +14,7 @@ namespace ObjectInitializer_AssignAll
     public class ObjectInitializer_AssignAllAnalyzer : DiagnosticAnalyzer
     {
         private const string DiagnosticId = "ObjectInitializer_AssignAll";
-        private const string Category = "Naming";
+        private const string Category = "Usage";
 
         // You can change these strings in the Resources.resx file. If you do not want your analyzer to be localize-able, you can use regular strings for Title and MessageFormat.
         // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Localizing%20Analyzers.md for more on localization
