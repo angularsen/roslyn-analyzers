@@ -26,7 +26,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // ObjectInitializer_AssignAll enable
             Foo foo = new Foo
             {
                 PropInt = 1,
@@ -58,20 +58,20 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // ObjectInitializer_AssignAll enable
             Foo foo = new Foo
             {
                 // PropInt not assigned, diagnostic error
                 // PropInt = 1,
 
-                // Roslyn disable analyzer ObjectInitializer_AssignAll
+                // ObjectInitializer_AssignAll disable
                 Bar = new Bar
                 {
                     // PropInt not assigned, but analyzer is disabled, no diagnostic error
                     // PropInt = 2,
 
                     // Re-enable analzyer for Baz creation
-                    // Roslyn enable analyzer ObjectInitializer_AssignAll
+                    // ObjectInitializer_AssignAll enable
                     Baz = new Baz
                     {
                         // PropInt not assigned, diagnostic error
@@ -117,8 +117,8 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
-            // Roslyn ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+            // ObjectInitializer_AssignAll enable
+            // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
             var foo = new Foo
             {
                 // These properties are not assigned, but also ignored by above comment
@@ -157,7 +157,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // ObjectInitializer_AssignAll enable
             var foo = new Foo
             {
                 // Diagnostics should flag that these properties are not set
@@ -218,7 +218,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // ObjectInitializer_AssignAll enable
             var foo = new Foo
             {
             };
@@ -244,7 +244,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // ObjectInitializer_AssignAll enable
             var foo = new Foo
             {
             };
@@ -271,7 +271,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // ObjectInitializer_AssignAll enable
             var foo = new Foo
             {
                 // Cannot assign read-only property
@@ -299,7 +299,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // ObjectInitializer_AssignAll enable
             var foo = new Foo
             {
                 // Cannot assign read-only field
@@ -373,7 +373,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // ObjectInitializer_AssignAll enable
             var foo = new Foo
             {
                 // Not assigned, should give error
@@ -409,7 +409,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // ObjectInitializer_AssignAll enable
             var foo = new Foo
             {
                 // The implementation is currently limited to public only, so all other access modifiers will be ignored
@@ -440,7 +440,7 @@ namespace SampleConsoleApp
         private static void Main(string[] args)
         {
             // Unassigned properties and fields are ignored for this type of construction
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // ObjectInitializer_AssignAll enable
             var foo = new Foo();
             // foo.FieldInt = 1;
         }

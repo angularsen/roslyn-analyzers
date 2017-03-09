@@ -44,11 +44,11 @@ namespace ObjectInitializer_AssignAll
 
         private class UnassignedMemberAnalyzer
         {
-            private const string DisableAnalyzerCommentPattern = "Roslyn disable analyzer ObjectInitializer_AssignAll";
-            private const string EnableAnalyzerCommentPattern = "Roslyn enable analyzer ObjectInitializer_AssignAll";
+            private const string DisableAnalyzerCommentPattern = "ObjectInitializer_AssignAll disable";
+            private const string EnableAnalyzerCommentPattern = "ObjectInitializer_AssignAll enable";
 
             private const string IgnorePropertiesAnalyzerCommentPattern =
-                "Roslyn ObjectInitializer_AssignAll IgnoreProperties:";
+                "ObjectInitializer_AssignAll IgnoreProperties:";
 
             private readonly ImmutableArray<TextSpan> _analyzerEnabledInTextSpans;
             private readonly ImmutableArray<string> _ignoredPropertyNames = ImmutableArray<string>.Empty;
