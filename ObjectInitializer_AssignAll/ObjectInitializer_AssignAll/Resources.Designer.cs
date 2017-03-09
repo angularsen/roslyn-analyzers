@@ -71,7 +71,7 @@ namespace ObjectInitializer_AssignAll {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Missing assignment for members of type &apos;{0}&apos;: {1}.
+        ///   Looks up a localized string similar to Missing member assignments in object initializer for type &apos;{0}&apos;. Properties: {1}.
         /// </summary>
         internal static string AnalyzerMessageFormat {
             get {
@@ -80,7 +80,7 @@ namespace ObjectInitializer_AssignAll {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Object initializer is missing one or more assignments.
+        ///   Looks up a localized string similar to Missing member assignments in object initializer.
         /// </summary>
         internal static string AnalyzerTitle {
             get {

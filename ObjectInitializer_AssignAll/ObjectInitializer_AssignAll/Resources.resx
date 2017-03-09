@@ -122,11 +122,11 @@
     <comment>An optional longer localizable description of the diagnostic.</comment>
   </data>
   <data name="AnalyzerMessageFormat" xml:space="preserve">
-    <value>Missing assignment for members of type '{0}': {1}</value>
+    <value>Missing member assignments in object initializer for type '{0}'. Properties: {1}</value>
     <comment>The format-able message the diagnostic displays.</comment>
   </data>
   <data name="AnalyzerTitle" xml:space="preserve">
-    <value>Object initializer is missing one or more assignments</value>
+    <value>Missing member assignments in object initializer</value>
     <comment>The title of the diagnostic.</comment>
   </data>
 </root>

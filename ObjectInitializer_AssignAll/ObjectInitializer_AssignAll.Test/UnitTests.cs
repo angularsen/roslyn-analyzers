@@ -468,7 +468,7 @@ namespace SampleConsoleApp
             DiagnosticResult expected = new DiagnosticResult
             {
                 Id = "ObjectInitializer_AssignAll",
-                Message = $"Missing assignment for members of type '{createdObjectTypeName}': {unassignedMembersString}",
+                Message = $"Missing member assignments in object initializer for type '{createdObjectTypeName}'. Properties: {unassignedMembersString}",
                 Severity = DiagnosticSeverity.Error,
                 Locations =
                     new[]
