@@ -3,7 +3,7 @@ Collection of useful Roslyn analyzers and code fixes.
 
 ## ObjectInitializer_AssignAll
 Gives diagnostic errors if not all members are assigned in an object initializer.
-This is particularly useful in cases such as mapping between DTO types and database entity types on a web server. One of the major benefits of using libraries like [AutoMapper](http://automapper.org/) is to ensure you don't forget to update the mappings when new properties are added or renamed. This analyzer helps you with exactly that and I can go back to good old object initializers that in my experience is simpler, faster to set up and probably a significant performance increase over AutoMapper.
+This is particularly useful in cases such as mapping between DTO types and database entity types on a web server, in that it ensures you don't forget to update the mapping when a new property is added or refactored. I previously used [AutoMapper](http://automapper.org/) to help with that, but now I can finally go back to good old object initializers that in my experience are simpler, faster to set up and probably a significant performance increase over mapping libraries.
 
 Nuget: [anjdreas.RoslynAnalyzers.ObjectInitializer_AssignAll](https://www.nuget.org/packages/anjdreas.RoslynAnalyzers.ObjectInitializer_AssignAll/)
 
