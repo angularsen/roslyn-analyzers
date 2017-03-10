@@ -13,9 +13,9 @@ namespace ObjectInitializer_AssignAll
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ObjectInitializer_AssignAllAnalyzer : DiagnosticAnalyzer
     {
-        private const string DisableAnalyzerCommentPattern = "ObjectInitializer_AssignAll disable";
-        private const string EnableAnalyzerCommentPattern = "ObjectInitializer_AssignAll enable";
-        private const string IgnorePropertiesAnalyzerCommentPattern = "ObjectInitializer_AssignAll IgnoreProperties:";
+        private const string CommentPattern_Disable = "ObjectInitializer_AssignAll disable";
+        private const string CommentPattern_Enable = "ObjectInitializer_AssignAll enable";
+        private const string CommentPattern_IgnoreProperties = "ObjectInitializer_AssignAll IgnoreProperties:";
         private const string DiagnosticId = "ObjectInitializer_AssignAll";
         private const string Category = "Usage";
 
@@ -34,7 +34,6 @@ namespace ObjectInitializer_AssignAll
             Category, DiagnosticSeverity.Error, true, Description);
 
         private ImmutableArray<TextSpan> _analyzerEnabledInTextSpans;
-        private ImmutableArray<string> _ignoredPropertyNames = ImmutableArray<string>.Empty;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -57,12 +56,12 @@ namespace ObjectInitializer_AssignAll
             foreach (SyntaxTrivia comment in singleLineComments)
             {
                 string commentText = comment.ToString().Replace("//", "").Trim();
-                if (commentText.Equals(EnableAnalyzerCommentPattern, StringComparison.OrdinalIgnoreCase))
+                if (commentText.Equals(CommentPattern_Enable, StringComparison.OrdinalIgnoreCase))
                 {
                     // Start of enable analyzer text span
                     enabledTextSpans.Add(new TextSpan(comment.SpanStart, root.FullSpan.End - comment.SpanStart));
                 }
-                else if (commentText.Equals(DisableAnalyzerCommentPattern, StringComparison.OrdinalIgnoreCase))
+                else if (commentText.Equals(CommentPattern_Disable, StringComparison.OrdinalIgnoreCase))
                 {
                     // End of enable analyzer text span
                     TextSpan? currentEnabledTextSpan = enabledTextSpans.Cast<TextSpan?>().LastOrDefault();
@@ -74,15 +73,6 @@ namespace ObjectInitializer_AssignAll
                     enabledTextSpans.RemoveAt(enabledTextSpans.Count - 1);
                     enabledTextSpans.Add(new TextSpan(currentEnabledTextSpan.Value.Start, spanLength));
                 }
-                else if (commentText.StartsWith(IgnorePropertiesAnalyzerCommentPattern, StringComparison.OrdinalIgnoreCase))
-                {
-                    string ignorePropertiesText =
-                        commentText.Substring(IgnorePropertiesAnalyzerCommentPattern.Length).Trim();
-
-                    _ignoredPropertyNames =
-                        ignorePropertiesText.Split(new[] {", ", ","}, StringSplitOptions.RemoveEmptyEntries)
-                            .ToImmutableArray();
-                }
             }
 
             _analyzerEnabledInTextSpans = enabledTextSpans.ToImmutableArray();
@@ -90,12 +80,11 @@ namespace ObjectInitializer_AssignAll
 
         private void AnalyzeObjectInitializers(SyntaxNodeAnalysisContext ctx)
         {
-            // Optimization, return early if there are no text spans enabled by comments
-            // as this would typically be the big majority of files.
-            if (_analyzerEnabledInTextSpans.IsEmpty)
-                return;
-
             InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax) ctx.Node;
+
+            // For now, only perform analysis when explicitly enabled by comment.
+            // TODO Support other means to enable, such as static configuration (analyze all/none by default), attributes on types and members
+            if (!IsAnalysisEnabledForSyntaxPosition(objectInitializer)) return;
 
             // Should be direct parent of ObjectInitializerExpression
             ObjectCreationExpressionSyntax objectCreation =
@@ -105,12 +94,6 @@ namespace ObjectInitializer_AssignAll
             // not sure what the scenario would be since we are only registered for
             // object initializers, not things like list/collection initializers.
             if (objectCreation == null)
-                return;
-
-            // For now, only perform analysis when explicitly enabled by comment.
-            // TODO Support other means to enable, such as static configuration (analyze all/none by default), attributes on types and members
-            bool isEnabledByComment = IsAnalysisEnabledForSyntaxPosition(objectCreation);
-            if (!isEnabledByComment)
                 return;
 
             SymbolInfo symbolInfo = ctx.SemanticModel.GetSymbolInfo(objectCreation.Type);
@@ -150,10 +133,12 @@ namespace ObjectInitializer_AssignAll
                 .Concat(assignableFields)
                 .Select(x => x.Name);
 
+            ImmutableArray<string> ignoredPropertyNames = GetIgnoredPropertyNames(objectCreation);
+
             List<string> unassignedMemberNames =
                 assignableMemberNames
                     .Except(assignedMemberNames)
-                    .Except(_ignoredPropertyNames)
+                    .Except(ignoredPropertyNames)
                     .ToList();
 
             if (unassignedMemberNames.Any())
@@ -166,9 +151,72 @@ namespace ObjectInitializer_AssignAll
             }
         }
 
-        private bool IsAnalysisEnabledForSyntaxPosition(ObjectCreationExpressionSyntax objectCreation)
+        private static ImmutableArray<string> GetIgnoredPropertyNames(ObjectCreationExpressionSyntax objectCreation)
         {
-            return _analyzerEnabledInTextSpans.Any(span => span.IntersectsWith(objectCreation.Span));
+            // Case 1: Comment before variable declaration and assignment:
+            // <comment here>
+            // Foo foo = new Foo { .. };
+            if (new[] {SyntaxKind.EqualsValueClause, SyntaxKind.VariableDeclarator, SyntaxKind.VariableDeclaration}
+                .SequenceEqual(objectCreation.Ancestors().Take(3).Select(x => x.Kind())))
+            {
+                VariableDeclarationSyntax variableDeclaration =
+                    (VariableDeclarationSyntax) objectCreation.Ancestors().Skip(2).First();
+                IdentifierNameSyntax identifierName =
+                    variableDeclaration.ChildNodes().OfType<IdentifierNameSyntax>().First();
+
+                SyntaxTrivia[] singleLineComments =
+                    identifierName.Identifier.LeadingTrivia.Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                        .ToArray();
+
+                return GetIgnoredPropertyNames(singleLineComments);
+            }
+
+
+            // Case 2: Comment before assignment (existing variable or member in an object initializer)
+            // Foo foo;
+            // <comment here>
+            // foo = new Foo { .. };
+            // Did not recognize syntax to locate leading comment for object initializer
+            if (new[] {SyntaxKind.SimpleAssignmentExpression}
+                .SequenceEqual(objectCreation.Ancestors().Take(1).Select(x => x.Kind())))
+            {
+                AssignmentExpressionSyntax assignmentExpression =
+                    (AssignmentExpressionSyntax) objectCreation.Ancestors().First();
+                IdentifierNameSyntax identifierName =
+                    assignmentExpression.ChildNodes().OfType<IdentifierNameSyntax>().First();
+
+                SyntaxTrivia[] singleLineComments =
+                    identifierName.Identifier.LeadingTrivia.Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                        .ToArray();
+
+                return GetIgnoredPropertyNames(singleLineComments);
+            }
+
+            // Did not recognize syntax to locate leading comment
+            return ImmutableArray<string>.Empty;
+        }
+
+        private static ImmutableArray<string> GetIgnoredPropertyNames(SyntaxTrivia[] singleLineComments)
+        {
+            return singleLineComments.SelectMany(singleLineComment =>
+            {
+                string commentText = singleLineComment.ToString().Replace("//", "").Trim();
+                if (commentText.StartsWith(CommentPattern_IgnoreProperties, StringComparison.OrdinalIgnoreCase))
+                {
+                    string ignorePropertiesText =
+                        commentText.Substring(CommentPattern_IgnoreProperties.Length).Trim();
+
+                    return
+                        ignorePropertiesText.Split(new[] {", ", ","}, StringSplitOptions.RemoveEmptyEntries);
+                }
+
+                return Enumerable.Empty<string>();
+            }).ToImmutableArray();
+        }
+
+        private bool IsAnalysisEnabledForSyntaxPosition(SyntaxNode initializer)
+        {
+            return _analyzerEnabledInTextSpans.Any(span => span.IntersectsWith(initializer.Span));
         }
     }
 }

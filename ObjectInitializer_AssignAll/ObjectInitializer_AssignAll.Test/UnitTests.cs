@@ -240,13 +240,13 @@ namespace SampleConsoleApp
         public void IgnorePropertiesComment_OnlyAffectsTheImmediatelyTrailingObjectInitializer()
         {
             var testContent = @"
+// ObjectInitializer_AssignAll enable
 namespace SampleConsoleApp
 {
     internal static class Program
     {
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
             // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
             var foo = new Foo
             {
