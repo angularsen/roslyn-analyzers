@@ -90,6 +90,11 @@ namespace ObjectInitializer_AssignAll
 
         private void AnalyzeObjectInitializers(SyntaxNodeAnalysisContext ctx)
         {
+            // Optimization, return early if there are no text spans enabled by comments
+            // as this would typically be the big majority of files.
+            if (_analyzerEnabledInTextSpans.IsEmpty)
+                return;
+
             InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax) ctx.Node;
 
             // Should be direct parent of ObjectInitializerExpression
