@@ -108,6 +108,95 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
+        public void EnableCommentAtTopOfFile_EnablesAnalyzerForEntireFile()
+        {
+            var testContent = @"
+// ObjectInitializer_AssignAll enable
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            Foo foo = new Foo
+            {
+                // PropInt not assigned, diagnostic error
+                // PropInt = 1,
+            };
+        }
+
+        private class Foo
+        {
+            public int PropInt { get; set; }
+        }
+    }
+}        
+";
+
+            // Bar type has no diagnostic errors
+            VerifyCSharpDiagnostic(testContent,
+                GetMissingAssignmentDiagnosticResult("Foo", 10, 13, "PropInt")
+            );
+        }
+
+        // Verify that analyzer does not care about syntax scopes by adding it inside a method
+        [TestMethod]
+        public void EnableCommentInsideMethod_EnablesAnalyzerForEntireFileBelow()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void CreateBarAboveEnableComment_NotAnalyzed()
+        {
+            Bar foo = new Bar
+            {
+                // PropInt not assigned, diagnostic error
+                // PropInt = 1,
+            };
+        }
+
+        private static void Main(string[] args)
+        {
+            // ObjectInitializer_AssignAll enable
+            Foo foo = new Foo
+            {
+                // PropInt not assigned, diagnostic error
+                // PropInt = 1,
+            };
+        }
+
+        private static void CreateBarBelowEnableComment_IsAnalyzed()
+        {
+            Bar foo = new Bar
+            {
+                // PropInt not assigned, diagnostic error
+                // PropInt = 1,
+            };
+        }
+
+        private class Foo
+        {
+            public int PropInt { get; set; }
+        }
+
+        private class Bar
+        {
+            public int PropInt { get; set; }
+        }
+    }
+}        
+";
+
+            // Bar type has no diagnostic errors
+            VerifyCSharpDiagnostic(testContent,
+                GetMissingAssignmentDiagnosticResult("Foo", 19, 13, "PropInt"),
+                GetMissingAssignmentDiagnosticResult("Bar", 28, 13, "PropInt")
+            );
+        }
+
+        [TestMethod]
         public void IgnorePropertiesComment_ExcludesPropertiesByNameFromDiagnostic()
         {
             var testContent = @"
@@ -145,6 +234,62 @@ namespace SampleConsoleApp
 ";
             DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 11, 13, "PropUnassigned");
             VerifyCSharpDiagnostic(testContent, expected);
+        }
+
+        [TestMethod]
+        public void IgnorePropertiesComment_OnlyAffectsTheImmediatelyTrailingObjectInitializer()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            // ObjectInitializer_AssignAll enable
+            // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+            var foo = new Foo
+            {
+                // These properties are not assigned, but also ignored by above comment
+                // PropIgnored1 = 1,
+                // PropIgnored2 = 1,
+
+                // This unassigned property will give diagnostic error
+                // PropUnassigned = 1,
+
+                // Assigned property, OK'ed by analyzer
+                PropAssigned = 1
+            };
+
+            // Analyzer should not ignore any properties for this object initializer
+            var foo2 = new Foo
+            {
+                // These properties should no longer be ignored, and should give diagnostic errors
+                // PropIgnored1 = 1,
+                // PropIgnored2 = 1,
+
+                // This unassigned property will give diagnostic error
+                // PropUnassigned = 1,
+
+                // Assigned property, OK'ed by analyzer
+                PropAssigned = 1
+            };
+        }
+
+        private class Foo
+        {
+            public int PropIgnored1 { get; set; }
+            public int PropIgnored2 { get; set; }
+            public int PropAssigned { get; set; }
+            public int PropUnassigned { get; set; }
+        }
+    }
+}
+";
+            VerifyCSharpDiagnostic(testContent,
+                GetMissingAssignmentDiagnosticResult("Foo", 11, 13, "PropUnassigned"),
+                GetMissingAssignmentDiagnosticResult("Foo", 25, 13, "PropIgnored1", "PropIgnored2", "PropUnassigned")
+            );
         }
 
         [TestMethod]
