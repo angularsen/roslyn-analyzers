@@ -49,7 +49,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void CommentsCanEnableAndDisableAnalyzerForTextSpans()
+        public void EnableAndDisableComments_EnablesAndDisablesAnalyzerForTextSpans()
         {
             var testContent = @"
 namespace SampleConsoleApp
