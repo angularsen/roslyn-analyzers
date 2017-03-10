@@ -10,8 +10,8 @@ I previously used [AutoMapper](http://automapper.org/) to help with that, but no
 Nuget: [anjdreas.RoslynAnalyzers.ObjectInitializer_AssignAll](https://www.nuget.org/packages/anjdreas.RoslynAnalyzers.ObjectInitializer_AssignAll/)
 
 Features
-* [Enable/disable by comments](#Enable/disable-by-comments)
-* [Ignore properties](#Ignore-properties)
+* [Enable/disable by comments](#enabledisable-by-comments)
+* [Ignore properties](#ignore-properties)
 
 Future improvements
 * Attributes to enable analysis for certain types
