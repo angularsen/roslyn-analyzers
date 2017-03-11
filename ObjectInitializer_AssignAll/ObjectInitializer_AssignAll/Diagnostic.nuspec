@@ -10,10 +10,10 @@
     <projectUrl>https://github.com/anjdreas/roslyn-analyzers/tree/master/ObjectInitializer_AssignAll</projectUrl>
 <!--    <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Roslyn code analyzer to give build errors if not all members are assigned in an object initializer.</description>
+    <description>Roslyn code analyzer to give diagnostic errors if not all members are assigned in an object initializer.</description>
 <!--    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>-->
     <copyright>Copyright (c) 2017 Andreas Gullberg Larsen, anjdreas@gmail.com.</copyright>
-    <tags>ObjectInitializer_AssignAll, analyzers</tags>
+    <tags>ObjectInitializer_AssignAll, objectinitializer, analyzers, roslyn, codeanalysis, diagnostics</tags>
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="System" targetFramework="" />
     </frameworkAssemblies>
