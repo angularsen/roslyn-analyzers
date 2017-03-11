@@ -96,9 +96,11 @@ namespace ObjectInitializer_AssignAll
             if (objectCreation == null)
                 return;
 
-            SymbolInfo symbolInfo = ctx.SemanticModel.GetSymbolInfo(objectCreation.Type);
+            INamedTypeSymbol objectCreationNamedType = (INamedTypeSymbol) ctx.SemanticModel.GetSymbolInfo(objectCreation.Type).Symbol;
+            if (objectCreationNamedType == null)
+                return;
 
-            ImmutableArray<ISymbol> members = ((INamedTypeSymbol) symbolInfo.Symbol).GetMembers();
+            ImmutableArray<ISymbol> members = objectCreationNamedType.GetMembers();
 
             List<string> assignedMemberNames = objectInitializer.ChildNodes()
                 .OfType<AssignmentExpressionSyntax>()
@@ -145,7 +147,7 @@ namespace ObjectInitializer_AssignAll
             {
                 string unassignedMembersString = string.Join(", ", unassignedMemberNames);
 
-                Diagnostic diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), symbolInfo.Symbol.Name,
+                Diagnostic diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), objectCreationNamedType.Name,
                     unassignedMembersString);
                 ctx.ReportDiagnostic(diagnostic);
             }
