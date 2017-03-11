@@ -7,17 +7,18 @@ This is particularly useful in cases when mapping between types, such as DTO typ
 
 I previously used [AutoMapper](http://automapper.org/) to help with that, but now I can finally go back to good old object initializers that in my experience are simpler, faster to set up and probably a significant performance increase over mapping libraries.
 
-Nuget: [anjdreas.RoslynAnalyzers.ObjectInitializer_AssignAll](https://www.nuget.org/packages/anjdreas.RoslynAnalyzers.ObjectInitializer_AssignAll/)
-
-Features
+* [Installation](#installation)
+* [Sample](#sample)
 * [Enable/disable by comments](#enabledisable-by-comments)
 * [Ignore properties](#ignore-properties)
+* [Future improvements](#future-improvements)
 
-Future improvements
-* Attributes to enable analysis for certain types
-* Attributes to ignore properties/fields
-* Configuration to enable/disable by default
 
+### Installation
+1. Install nuget [anjdreas.RoslynAnalyzers.ObjectInitializer_AssignAll](https://www.nuget.org/packages/anjdreas.RoslynAnalyzers.ObjectInitializer_AssignAll/)
+2. Add comment `// ObjectInitializer_AssignAll enable` somewhere above the object initializers you want to analyze
+
+### Sample
 ```csharp
 private static void UnassignedMembersGiveBuildError()
 {
@@ -92,3 +93,8 @@ private class Foo
     public int PropUnassigned { get; set; }
 }
 ```
+
+### Future improvements
+* Attributes to enable analysis for certain types
+* Attributes to ignore properties/fields
+* Configuration to enable/disable by default
