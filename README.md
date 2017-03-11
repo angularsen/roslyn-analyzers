@@ -16,6 +16,7 @@ Features
 Future improvements
 * Attributes to enable analysis for certain types
 * Attributes to ignore properties/fields
+* Configuration to enable/disable by default
 
 ```csharp
 private static void UnassignedMembersGiveBuildError()
