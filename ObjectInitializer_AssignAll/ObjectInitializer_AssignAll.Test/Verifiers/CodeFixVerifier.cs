@@ -39,16 +39,17 @@ namespace TestHelper
         /// </summary>
         /// <param name="oldSource">A class in the form of a string before the CodeFix was applied to it</param>
         /// <param name="newSource">A class in the form of a string after the CodeFix was applied to it</param>
+        /// <param name="verifyDiagnosticsRemovedByCodeFix"></param>
         /// <param name="codeFixIndex">Index determining which codefix to apply if there are multiple</param>
         /// <param name="allowNewCompilerDiagnostics">
         ///     A bool controlling whether or not the test will fail if the CodeFix
         ///     introduces other warnings after being applied
         /// </param>
         protected void VerifyCSharpFix(string oldSource, string newSource, int? codeFixIndex = null,
-            bool allowNewCompilerDiagnostics = false)
+            bool allowNewCompilerDiagnostics = false, bool verifyDiagnosticsRemovedByCodeFix = true)
         {
             VerifyFix(LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), GetCSharpCodeFixProvider(), oldSource,
-                newSource, codeFixIndex, allowNewCompilerDiagnostics);
+                newSource, codeFixIndex, allowNewCompilerDiagnostics, verifyDiagnosticsRemovedByCodeFix);
         }
 
         /// <summary>
@@ -62,10 +63,10 @@ namespace TestHelper
         ///     introduces other warnings after being applied
         /// </param>
         protected void VerifyBasicFix(string oldSource, string newSource, int? codeFixIndex = null,
-            bool allowNewCompilerDiagnostics = false)
+            bool allowNewCompilerDiagnostics = false, bool verifyDiagnosticsRemovedByCodeFix = true)
         {
             VerifyFix(LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), GetBasicCodeFixProvider(), oldSource,
-                newSource, codeFixIndex, allowNewCompilerDiagnostics);
+                newSource, codeFixIndex, allowNewCompilerDiagnostics, verifyDiagnosticsRemovedByCodeFix);
         }
 
         /// <summary>
@@ -85,12 +86,18 @@ namespace TestHelper
         ///     A bool controlling whether or not the test will fail if the CodeFix
         ///     introduces other warnings after being applied
         /// </param>
+        /// <param name="verifyDiagnosticsRemovedByCodeFix">
+        ///     Set to true to verify all diagnostics are removed by the code fix. Set to
+        ///     false to not create diagnostics at all after the code fix, which is useful if the codefix intentionally creates
+        ///     compile errors.
+        /// </param>
         private void VerifyFix(string language, DiagnosticAnalyzer analyzer, CodeFixProvider codeFixProvider,
-            string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
+            string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics,
+            bool verifyDiagnosticsRemovedByCodeFix)
         {
             Document document = CreateDocument(oldSource, language);
             Diagnostic[] analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] {document});
-            IEnumerable<Diagnostic> compilerDiagnostics = GetCompilerDiagnostics(document);
+            IList<Diagnostic> compilerDiagnostics = GetCompilerDiagnostics(document).ToList();
             int attempts = analyzerDiagnostics.Length;
 
             for (var i = 0; i < attempts; ++i)
@@ -110,29 +117,36 @@ namespace TestHelper
                 }
 
                 document = ApplyFix(document, actions.ElementAt(0));
-                analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] {document});
-
-                IEnumerable<Diagnostic> newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics,
-                    GetCompilerDiagnostics(document));
-
-                //check if applying the code fix introduced any new compiler diagnostics
-                if (!allowNewCompilerDiagnostics && newCompilerDiagnostics.Any())
+                if (verifyDiagnosticsRemovedByCodeFix)
                 {
-                    // Format and get the compiler diagnostics again so that the locations make sense in the output
-                    document =
-                        document.WithSyntaxRoot(Formatter.Format(document.GetSyntaxRootAsync().Result,
-                            Formatter.Annotation, document.Project.Solution.Workspace));
-                    newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, GetCompilerDiagnostics(document));
+                    Diagnostic[] analyzerDiagnosticsAfterCodeFix = GetSortedDiagnosticsFromDocuments(analyzer,
+                        new[] {document});
 
-                    Assert.IsTrue(false,
-                        string.Format("Fix introduced new compiler diagnostics:\r\n{0}\r\n\r\nNew document:\r\n{1}\r\n",
-                            string.Join("\r\n", newCompilerDiagnostics.Select(d => d.ToString())),
-                            document.GetSyntaxRootAsync().Result.ToFullString()));
+                    IEnumerable<Diagnostic> newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics,
+                        GetCompilerDiagnostics(document));
+
+                    //check if applying the code fix introduced any new compiler diagnostics
+                    if (!allowNewCompilerDiagnostics && newCompilerDiagnostics.Any())
+                    {
+                        // Format and get the compiler diagnostics again so that the locations make sense in the output
+                        document =
+                            document.WithSyntaxRoot(Formatter.Format(document.GetSyntaxRootAsync().Result,
+                                Formatter.Annotation, document.Project.Solution.Workspace));
+                        newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, GetCompilerDiagnostics(document));
+
+                        Assert.IsTrue(false,
+                            $@"Fix introduced new compiler diagnostics:
+{string.Join("\r\n", newCompilerDiagnostics.Select(d => d.ToString()))}
+
+New document:
+{document.GetSyntaxRootAsync().Result.ToFullString()}
+");
+                    }
+
+                    //check if there are analyzer diagnostics left after the code fix
+                    if (!analyzerDiagnosticsAfterCodeFix.Any())
+                        break;
                 }
-
-                //check if there are analyzer diagnostics left after the code fix
-                if (!analyzerDiagnostics.Any())
-                    break;
             }
 
             //after applying all of the code fixes, compare the resulting string to the inputted one
