@@ -43,7 +43,7 @@ private class Foo
 ![Error list describes what properties or fields are not assigned.](Docs/Images/ObjectInitializer_AssignAll_ErrorList.png?raw=true "Error list describes what properties or fields are not assigned.")
 
 ### Enable/disable by comments
-Analysis must be explicitly enabled by a special comment, and can be disabled and re-enabled to only apply analysis to certain blocks of code.
+Analysis must be explicitly enabled by a special comment, and can be disabled and re-enabled to only apply analysis to certain blocks of code. These comments can occur anywhere in the file and affects all the code below it, or until the next special comment.
 ```csharp
 // ObjectInitializer_AssignAll enable
 Foo foo = new Foo
@@ -69,6 +69,7 @@ Foo foo = new Foo
 ```
 
 ### Ignore properties
+The `IgnoreProperties` comment must occur immediately before the object creation and object initializer. It will only affect this single initializer. For nested properties with their own initializers, separate comments must be added to ignore properties in those.
 ```csharp
 // ObjectInitializer_AssignAll enable
 // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
