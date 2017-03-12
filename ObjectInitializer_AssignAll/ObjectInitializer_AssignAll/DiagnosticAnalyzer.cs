@@ -13,10 +13,12 @@ namespace ObjectInitializer_AssignAll
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ObjectInitializer_AssignAllAnalyzer : DiagnosticAnalyzer
     {
+        internal const string Properties_UnassignedMemberNames = "UnassignedMemberNames";
+        internal const string DiagnosticId = "ObjectInitializer_AssignAll";
+
         private const string CommentPattern_Disable = "ObjectInitializer_AssignAll disable";
         private const string CommentPattern_Enable = "ObjectInitializer_AssignAll enable";
         private const string CommentPattern_IgnoreProperties = "ObjectInitializer_AssignAll IgnoreProperties:";
-        private const string DiagnosticId = "ObjectInitializer_AssignAll";
         private const string Category = "Usage";
 
         private static readonly LocalizableString Title = new LocalizableResourceString(
@@ -145,11 +147,22 @@ namespace ObjectInitializer_AssignAll
 
             if (unassignedMemberNames.Any())
             {
-                string unassignedMembersString = string.Join(", ", unassignedMemberNames);
+                string unassignedMembersString = String.Join(", ", unassignedMemberNames);
 
-                Diagnostic diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(), objectCreationNamedType.Name,
-                    unassignedMembersString);
+                var properties =
+                    new Dictionary<string, string> {{Properties_UnassignedMemberNames, unassignedMembersString}}
+                        .ToImmutableDictionary();
+
+                Diagnostic diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(),
+                    properties: properties,
+                    messageArgs: new object[]
+                    {
+                        objectCreationNamedType.Name,
+                        unassignedMembersString
+                    });
+
                 ctx.ReportDiagnostic(diagnostic);
+
             }
         }
 
