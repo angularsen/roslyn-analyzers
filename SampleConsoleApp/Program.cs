@@ -7,7 +7,7 @@
             // ObjectInitializer_AssignAll enable
             Foo foo = new Foo
             {
-                PropInt = 1,
+                //PropInt = 1,
                 // ObjectInitializer_AssignAll disable
                 Bar = new Bar
                 {
