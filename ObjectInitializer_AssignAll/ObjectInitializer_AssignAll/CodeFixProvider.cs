@@ -21,7 +21,7 @@ namespace ObjectInitializer_AssignAll
         {
             
         }
-        private const string Title = "Populate missing assignments";
+        private const string Title = "Assign all members";
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ObjectInitializer_AssignAllAnalyzer.DiagnosticId);
 
