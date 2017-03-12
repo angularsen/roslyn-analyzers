@@ -33,7 +33,7 @@ namespace ObjectInitializer_AssignAll
                 typeof(Resources));
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat,
-            Category, DiagnosticSeverity.Error, true, Description);
+            Category, DiagnosticSeverity.Error, true, Description, "https://github.com/anjdreas/roslyn-analyzers#objectinitializer_assignall");
 
         private ImmutableArray<TextSpan> _analyzerEnabledInTextSpans;
 
