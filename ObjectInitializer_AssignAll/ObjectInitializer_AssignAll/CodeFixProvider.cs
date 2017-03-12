@@ -17,13 +17,9 @@ namespace ObjectInitializer_AssignAll
     [Shared]
     public class ObjectInitializer_AssignAllCodeFixProvider : CodeFixProvider
     {
-        public ObjectInitializer_AssignAllCodeFixProvider()
-        {
-            
-        }
         private const string Title = "Assign all members";
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ObjectInitializer_AssignAllAnalyzer.DiagnosticId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(ObjectInitializer_AssignAllAnalyzer.DiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
