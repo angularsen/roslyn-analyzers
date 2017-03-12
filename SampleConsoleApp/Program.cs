@@ -4,11 +4,11 @@
     {
         private static void Main(string[] args)
         {
-            // Roslyn enable analyzer ObjectInitializer_AssignAll
+            // ObjectInitializer_AssignAll enable
             Foo foo = new Foo
             {
                 PropInt = 1,
-                // Roslyn disable analyzer ObjectInitializer_AssignAll
+                // ObjectInitializer_AssignAll disable
                 Bar = new Bar
                 {
                     //PropInt = 2
