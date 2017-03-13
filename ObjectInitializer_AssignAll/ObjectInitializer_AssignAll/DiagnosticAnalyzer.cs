@@ -19,7 +19,7 @@ namespace ObjectInitializer_AssignAll
         private const string CommentPattern_Disable = "ObjectInitializer_AssignAll disable";
         private const string CommentPattern_Enable = "ObjectInitializer_AssignAll enable";
         private const string CommentPattern_IgnoreProperties = "ObjectInitializer_AssignAll IgnoreProperties:";
-        private const string Category = "Usage";
+        private const string Category = "Naming";
 
         private static readonly LocalizableString Title = new LocalizableResourceString(
             nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));
@@ -33,11 +33,12 @@ namespace ObjectInitializer_AssignAll
                 typeof(Resources));
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat,
-            Category, DiagnosticSeverity.Error, true, Description, "https://github.com/anjdreas/roslyn-analyzers#objectinitializer_assignall");
+            Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description,
+            helpLinkUri: "https://github.com/anjdreas/roslyn-analyzers#objectinitializer_assignall");
 
         private ImmutableArray<TextSpan> _analyzerEnabledInTextSpans;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext ctx)
         {
@@ -153,7 +154,9 @@ namespace ObjectInitializer_AssignAll
                     new Dictionary<string, string> {{Properties_UnassignedMemberNames, unassignedMembersString}}
                         .ToImmutableDictionary();
 
-                Diagnostic diagnostic = Diagnostic.Create(Rule, ctx.Node.GetLocation(),
+                Diagnostic diagnostic = Diagnostic.Create(Rule,
+                    objectCreation.GetLocation(),
+                    //ctx.Node.GetLocation(),
                     properties: properties,
                     messageArgs: new object[]
                     {

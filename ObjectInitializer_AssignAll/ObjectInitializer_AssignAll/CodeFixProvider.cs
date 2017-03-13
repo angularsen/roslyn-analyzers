@@ -29,7 +29,8 @@ namespace ObjectInitializer_AssignAll
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            SyntaxNode root =
+                await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             Diagnostic diagnostic = context.Diagnostics.First();
             TextSpan diagnosticSpan = diagnostic.Location.SourceSpan;
 
@@ -39,7 +40,8 @@ namespace ObjectInitializer_AssignAll
                 return;
 
             // Find the object initializer identified by the diagnostic
-            var objectInitializer = root.FindNode(diagnosticSpan) as InitializerExpressionSyntax;
+            var objectCreation = root.FindNode(diagnosticSpan) as ObjectCreationExpressionSyntax;
+            InitializerExpressionSyntax objectInitializer = objectCreation?.Initializer;
             if (objectInitializer == null)
                 return;
 
@@ -47,7 +49,9 @@ namespace ObjectInitializer_AssignAll
             context.RegisterCodeFix(
                 CodeAction.Create(
                     Title,
-                    ct => PopulateMissingAssignmentsAsync(context.Document, objectInitializer, unassignedMemberNames, ct),
+                    ct =>
+                        PopulateMissingAssignmentsAsync(context.Document, objectInitializer, unassignedMemberNames,
+                            ct),
                     Title),
                 diagnostic);
         }
@@ -72,8 +76,8 @@ namespace ObjectInitializer_AssignAll
                 newExpressions);
 
             // Reformat fails due to the codefix code not compiling..
-//            newObjectInitializer =
-//                (InitializerExpressionSyntax) Formatter.Format(newObjectInitializer, MSBuildWorkspace.Create());
+            //            newObjectInitializer =
+            //                (InitializerExpressionSyntax) Formatter.Format(newObjectInitializer, MSBuildWorkspace.Create());
 
             SyntaxNode newRoot = oldRoot.ReplaceNode(objectInitializer, newObjectInitializer);
             return document.WithSyntaxRoot(newRoot);
@@ -85,7 +89,7 @@ namespace ObjectInitializer_AssignAll
             if (!diagnostic.Properties.TryGetValue(ObjectInitializer_AssignAllAnalyzer.Properties_UnassignedMemberNames, out unassignedMemberNamesValue))
                 return new string[0];
 
-            return unassignedMemberNamesValue.Split(new[] {","}, StringSplitOptions.RemoveEmptyEntries)
+            return unassignedMemberNamesValue.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(str => str.Trim())
                 .ToArray();
         }

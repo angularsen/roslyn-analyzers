@@ -5,15 +5,19 @@
         private static void Main(string[] args)
         {
             // ObjectInitializer_AssignAll enable
-            Foo foo = new Foo
+            var foo2 = new Foo
             {
-                //PropInt = 1,
-                // ObjectInitializer_AssignAll disable
-                Bar = new Bar
-                {
-                    //PropInt = 2
-                }
+
             };
+            //Foo foo = new Foo
+            //{
+            //    //PropInt = 1,
+            //    // ObjectInitializer_AssignAll disable
+            //    Bar = new Bar
+            //    {
+            //        //PropInt = 2
+            //    }
+            //};
         }
 
         private class Foo
