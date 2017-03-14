@@ -11,6 +11,7 @@ I previously used [AutoMapper](http://automapper.org/) to help with that, but no
 * [Sample](#sample)
 * [Enable/disable by comments](#enabledisable-by-comments)
 * [Ignore properties](#ignore-properties)
+* [Code fix: Assign all members](#code-fix-assign-all-members)
 * [Future improvements](#future-improvements)
 
 
@@ -94,6 +95,13 @@ private class Foo
     public int PropUnassigned { get; set; }
 }
 ```
+
+### Code fix: Assign all members
+Quickly populate all missing property assignments with an empty value so it does not compile until you assign all the values.
+This saves a lot of typing and intellisense browsing.
+
+![Apply code fix 'Assign all members'](Docs/Images/ObjectInitializer_AssignAll_AssignAllMembers.gif?raw=true "Apply code fix 'Assign all members'")
+
 
 ### Future improvements
 * Attributes to enable analysis for certain types
