@@ -19,7 +19,7 @@ namespace ObjectInitializer_AssignAll
         private const string CommentPattern_Disable = "ObjectInitializer_AssignAll disable";
         private const string CommentPattern_Enable = "ObjectInitializer_AssignAll enable";
         private const string CommentPattern_IgnoreProperties = "ObjectInitializer_AssignAll IgnoreProperties:";
-        private const string Category = "Naming";
+        private const string Category = "Usage";
 
         private static readonly LocalizableString Title = new LocalizableResourceString(
             nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));
@@ -33,7 +33,7 @@ namespace ObjectInitializer_AssignAll
                 typeof(Resources));
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat,
-            Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description,
+            Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description,
             helpLinkUri: "https://github.com/anjdreas/roslyn-analyzers#objectinitializer_assignall");
 
         private ImmutableArray<TextSpan> _analyzerEnabledInTextSpans;
