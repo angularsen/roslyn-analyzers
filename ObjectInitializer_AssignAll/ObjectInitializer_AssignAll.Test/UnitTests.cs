@@ -102,8 +102,8 @@ namespace SampleConsoleApp
 
             // Bar type has no diagnostic errors
             VerifyCSharpDiagnostic(testContent,
-                GetMissingAssignmentDiagnosticResult("Foo", 10, 13, "PropInt"),
-                GetMissingAssignmentDiagnosticResult("Baz", 23, 21, "PropInt")
+                GetMissingAssignmentDiagnosticResult("Foo", 9, 23, "PropInt"),
+                GetMissingAssignmentDiagnosticResult("Baz", 22, 27, "PropInt")
             );
         }
 
@@ -135,7 +135,7 @@ namespace SampleConsoleApp
 
             // Bar type has no diagnostic errors
             VerifyCSharpDiagnostic(testContent,
-                GetMissingAssignmentDiagnosticResult("Foo", 10, 13, "PropInt")
+                GetMissingAssignmentDiagnosticResult("Foo", 9, 23, "PropInt")
             );
         }
 
@@ -191,13 +191,13 @@ namespace SampleConsoleApp
 
             // Bar type has no diagnostic errors
             VerifyCSharpDiagnostic(testContent,
-                GetMissingAssignmentDiagnosticResult("Foo", 19, 13, "PropInt"),
-                GetMissingAssignmentDiagnosticResult("Bar", 28, 13, "PropInt")
+                GetMissingAssignmentDiagnosticResult("Foo", 18, 23, "PropInt"),
+                GetMissingAssignmentDiagnosticResult("Bar", 27, 23, "PropInt")
             );
         }
 
         [TestMethod]
-        public void IgnorePropertiesComment_ExcludesPropertiesByNameFromDiagnostic()
+        public void IgnorePropertiesComment_BeforeLocalDeclaration_ExcludesPropertiesFromDiagnostic()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -232,7 +232,7 @@ namespace SampleConsoleApp
     }
 }
 ";
-            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 11, 13, "PropUnassigned");
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 10, 23, "PropUnassigned");
             VerifyCSharpDiagnostic(testContent, expected);
         }
 
@@ -287,8 +287,8 @@ namespace SampleConsoleApp
 }
 ";
             VerifyCSharpDiagnostic(testContent,
-                GetMissingAssignmentDiagnosticResult("Foo", 11, 13, "PropUnassigned"),
-                GetMissingAssignmentDiagnosticResult("Foo", 25, 13, "PropIgnored1", "PropIgnored2", "PropUnassigned")
+                GetMissingAssignmentDiagnosticResult("Foo", 10, 23, "PropUnassigned"),
+                GetMissingAssignmentDiagnosticResult("Foo", 24, 24, "PropIgnored1", "PropIgnored2", "PropUnassigned")
             );
         }
 
@@ -627,8 +627,8 @@ namespace SampleConsoleApp
         private static DiagnosticResult GetMissingAssignmentDiagnosticResult(params string[] unassignedMemberNames)
         {
             // Most code snippets in the tests are identical up to the object initializer
-            const int line = 10;
-            const int column = 13;
+            const int line = 9;
+            const int column = 23;
             return GetMissingAssignmentDiagnosticResult("Foo", line, column, unassignedMemberNames);
         }
     }
