@@ -19,7 +19,8 @@ namespace ObjectInitializer_AssignAll
     {
         private const string Title = "Assign all members";
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(ObjectInitializer_AssignAllAnalyzer.DiagnosticId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(ObjectInitializer_AssignAllAnalyzer.DiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
@@ -40,7 +41,8 @@ namespace ObjectInitializer_AssignAll
                 return;
 
             // Find the object initializer identified by the diagnostic
-            var objectCreation = root.FindNode(diagnosticSpan) as ObjectCreationExpressionSyntax;
+            ObjectCreationExpressionSyntax objectCreation =
+                root.FindNode(diagnosticSpan) as ObjectCreationExpressionSyntax;
             InitializerExpressionSyntax objectInitializer = objectCreation?.Initializer;
             if (objectInitializer == null)
                 return;
@@ -56,7 +58,8 @@ namespace ObjectInitializer_AssignAll
                 diagnostic);
         }
 
-        private static async Task<Document> PopulateMissingAssignmentsAsync(Document document, InitializerExpressionSyntax objectInitializer, string[] unassignedMemberNames, CancellationToken ct)
+        private static async Task<Document> PopulateMissingAssignmentsAsync(Document document,
+            InitializerExpressionSyntax objectInitializer, string[] unassignedMemberNames, CancellationToken ct)
         {
             // Can't manipulate syntax without a syntax root
             SyntaxNode oldRoot = await document.GetSyntaxRootAsync(ct).ConfigureAwait(false);
@@ -86,10 +89,12 @@ namespace ObjectInitializer_AssignAll
         private static string[] GetUnassignedMemberNames(Diagnostic diagnostic)
         {
             string unassignedMemberNamesValue;
-            if (!diagnostic.Properties.TryGetValue(ObjectInitializer_AssignAllAnalyzer.Properties_UnassignedMemberNames, out unassignedMemberNamesValue))
+            if (
+                !diagnostic.Properties.TryGetValue(
+                    ObjectInitializer_AssignAllAnalyzer.Properties_UnassignedMemberNames, out unassignedMemberNamesValue))
                 return new string[0];
 
-            return unassignedMemberNamesValue.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+            return unassignedMemberNamesValue.Split(new[] {","}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(str => str.Trim())
                 .ToArray();
         }

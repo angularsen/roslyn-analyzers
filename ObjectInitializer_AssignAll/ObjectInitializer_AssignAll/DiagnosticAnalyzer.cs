@@ -33,12 +33,13 @@ namespace ObjectInitializer_AssignAll
                 typeof(Resources));
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat,
-            Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description,
-            helpLinkUri: "https://github.com/anjdreas/roslyn-analyzers#objectinitializer_assignall");
+            Category, DiagnosticSeverity.Error, true, Description,
+            "https://github.com/anjdreas/roslyn-analyzers#objectinitializer_assignall");
 
         private ImmutableArray<TextSpan> _analyzerEnabledInTextSpans;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule)
+            ;
 
         public override void Initialize(AnalysisContext ctx)
         {
@@ -99,7 +100,8 @@ namespace ObjectInitializer_AssignAll
             if (objectCreation == null)
                 return;
 
-            INamedTypeSymbol objectCreationNamedType = (INamedTypeSymbol) ctx.SemanticModel.GetSymbolInfo(objectCreation.Type).Symbol;
+            INamedTypeSymbol objectCreationNamedType =
+                (INamedTypeSymbol) ctx.SemanticModel.GetSymbolInfo(objectCreation.Type).Symbol;
             if (objectCreationNamedType == null)
                 return;
 
@@ -148,24 +150,18 @@ namespace ObjectInitializer_AssignAll
 
             if (unassignedMemberNames.Any())
             {
-                string unassignedMembersString = String.Join(", ", unassignedMemberNames);
+                string unassignedMembersString = string.Join(", ", unassignedMemberNames);
 
-                var properties =
+                ImmutableDictionary<string, string> properties =
                     new Dictionary<string, string> {{Properties_UnassignedMemberNames, unassignedMembersString}}
                         .ToImmutableDictionary();
 
                 Diagnostic diagnostic = Diagnostic.Create(Rule,
                     objectCreation.GetLocation(),
                     //ctx.Node.GetLocation(),
-                    properties: properties,
-                    messageArgs: new object[]
-                    {
-                        objectCreationNamedType.Name,
-                        unassignedMembersString
-                    });
+                    properties, objectCreationNamedType.Name, unassignedMembersString);
 
                 ctx.ReportDiagnostic(diagnostic);
-
             }
         }
 
@@ -192,11 +188,12 @@ namespace ObjectInitializer_AssignAll
             // Foo foo;
             // <comment here>
             // foo = new Foo { .. };
-            SyntaxTriviaList assignmentLeadingTrivia = objectCreation.Parent<AssignmentExpressionSyntax>(SyntaxKind.SimpleAssignmentExpression)?
-                                                                .ChildNodes()
-                                                                .OfType<IdentifierNameSyntax>()
-                                                                .First()
-                                                                .Identifier.LeadingTrivia ?? new SyntaxTriviaList();
+            SyntaxTriviaList assignmentLeadingTrivia = objectCreation.Parent<AssignmentExpressionSyntax>(
+                                                               SyntaxKind.SimpleAssignmentExpression)?
+                                                           .ChildNodes()
+                                                           .OfType<IdentifierNameSyntax>()
+                                                           .First()
+                                                           .Identifier.LeadingTrivia ?? new SyntaxTriviaList();
 
 
             // Case 4: Comment before return statement
