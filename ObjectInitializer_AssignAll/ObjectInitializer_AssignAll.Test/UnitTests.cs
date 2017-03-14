@@ -293,6 +293,128 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
+        public void IgnorePropertiesComment_BeforeObjectCreation_ExcludesPropertiesFromDiagnostic()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            // ObjectInitializer_AssignAll enable
+            // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+            new Foo
+            {
+                // These properties are not assigned, but also ignored by above comment
+                // PropIgnored1 = 1,
+                // PropIgnored2 = 1,
+
+                // This unassigned property will give diagnostic error
+                // PropUnassigned = 1,
+
+                // Assigned property, OK'ed by analyzer
+                PropAssigned = 1
+            };
+        }
+
+        private class Foo
+        {
+            public int PropIgnored1 { get; set; }
+            public int PropIgnored2 { get; set; }
+            public int PropAssigned { get; set; }
+            public int PropUnassigned { get; set; }
+        }
+    }
+}
+";
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 10, 13, "PropUnassigned");
+            VerifyCSharpDiagnostic(testContent, expected);
+        }
+
+        [TestMethod]
+        public void IgnorePropertiesComment_BeforeReturn_ExcludesPropertiesFromDiagnostic()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static Foo Main()
+        {
+            // ObjectInitializer_AssignAll enable
+            // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+            return new Foo
+            {
+                // These properties are not assigned, but also ignored by above comment
+                // PropIgnored1 = 1,
+                // PropIgnored2 = 1,
+
+                // This unassigned property will give diagnostic error
+                // PropUnassigned = 1,
+
+                // Assigned property, OK'ed by analyzer
+                PropAssigned = 1
+            };
+        }
+
+        private class Foo
+        {
+            public int PropIgnored1 { get; set; }
+            public int PropIgnored2 { get; set; }
+            public int PropAssigned { get; set; }
+            public int PropUnassigned { get; set; }
+        }
+    }
+}
+";
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 10, 20, "PropUnassigned");
+            VerifyCSharpDiagnostic(testContent, expected);
+        }
+
+        [TestMethod]
+        public void IgnorePropertiesComment_BeforeLambdaReturn_ExcludesPropertiesFromDiagnostic()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static Foo Main()
+        {
+            // ObjectInitializer_AssignAll enable
+            var foos = Enumerable.Repeat(1, 10).Select(i => 
+            // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+                new Foo
+                {
+                    // These properties are not assigned, but also ignored by above comment
+                    // PropIgnored1 = 1,
+                    // PropIgnored2 = 1,
+
+                    // This unassigned property will give diagnostic error
+                    // PropUnassigned = 1,
+
+                    // Assigned property, OK'ed by analyzer
+                    PropAssigned = 1
+                };
+            );
+        }
+
+        private class Foo
+        {
+            public int PropIgnored1 { get; set; }
+            public int PropIgnored2 { get; set; }
+            public int PropAssigned { get; set; }
+            public int PropUnassigned { get; set; }
+        }
+    }
+}
+";
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 11, 17, "PropUnassigned");
+            VerifyCSharpDiagnostic(testContent, expected);
+        }
+
+        [TestMethod]
         public void PropertiesNotAssigned_AddsDiagnosticWithPropertyNames()
         {
             var testContent = @"

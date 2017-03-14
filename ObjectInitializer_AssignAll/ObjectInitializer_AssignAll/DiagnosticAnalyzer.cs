@@ -171,47 +171,47 @@ namespace ObjectInitializer_AssignAll
 
         private static ImmutableArray<string> GetIgnoredPropertyNames(ObjectCreationExpressionSyntax objectCreation)
         {
-            // Case 1: Comment before variable declaration and assignment:
+            // Case 1: Comment before 'new' identifier in object creation (lambda return statement)
+            // <comment here>
+            // new Foo { .. };
+            // Did not recognize syntax to locate leading comment for object initializer
+            SyntaxTriviaList leadingTrivianOfNewIdentifier = objectCreation.NewKeyword.LeadingTrivia;
+
+            // Case 2: Comment before variable declaration and assignment:
             // <comment here>
             // Foo foo = new Foo { .. };
-            if (new[] {SyntaxKind.EqualsValueClause, SyntaxKind.VariableDeclarator, SyntaxKind.VariableDeclaration}
-                .SequenceEqual(objectCreation.Ancestors().Take(3).Select(x => x.Kind())))
-            {
-                VariableDeclarationSyntax variableDeclaration =
-                    (VariableDeclarationSyntax) objectCreation.Ancestors().Skip(2).First();
-                IdentifierNameSyntax identifierName =
-                    variableDeclaration.ChildNodes().OfType<IdentifierNameSyntax>().First();
+            SyntaxTriviaList localDeclarationLeadingTrivia = objectCreation.Parent(SyntaxKind.EqualsValueClause)?
+                                                                 .Parent(SyntaxKind.VariableDeclarator)?
+                                                                 .Parent<VariableDeclarationSyntax>()?
+                                                                 .ChildNodes()
+                                                                 .OfType<IdentifierNameSyntax>()
+                                                                 .First()
+                                                                 .Identifier.LeadingTrivia ?? new SyntaxTriviaList();
 
-                SyntaxTrivia[] singleLineComments =
-                    identifierName.Identifier.LeadingTrivia.Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                        .ToArray();
-
-                return GetIgnoredPropertyNames(singleLineComments);
-            }
-
-
-            // Case 2: Comment before assignment (existing variable or member in an object initializer)
+            // Case 3: Comment before assignment (no declaration, existing variable or member assignment)
             // Foo foo;
             // <comment here>
             // foo = new Foo { .. };
-            // Did not recognize syntax to locate leading comment for object initializer
-            if (new[] {SyntaxKind.SimpleAssignmentExpression}
-                .SequenceEqual(objectCreation.Ancestors().Take(1).Select(x => x.Kind())))
-            {
-                AssignmentExpressionSyntax assignmentExpression =
-                    (AssignmentExpressionSyntax) objectCreation.Ancestors().First();
-                IdentifierNameSyntax identifierName =
-                    assignmentExpression.ChildNodes().OfType<IdentifierNameSyntax>().First();
+            SyntaxTriviaList assignmentLeadingTrivia = objectCreation.Parent<AssignmentExpressionSyntax>(SyntaxKind.SimpleAssignmentExpression)?
+                                                                .ChildNodes()
+                                                                .OfType<IdentifierNameSyntax>()
+                                                                .First()
+                                                                .Identifier.LeadingTrivia ?? new SyntaxTriviaList();
 
-                SyntaxTrivia[] singleLineComments =
-                    identifierName.Identifier.LeadingTrivia.Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                        .ToArray();
 
-                return GetIgnoredPropertyNames(singleLineComments);
-            }
+            // Case 4: Comment before return statement
+            // <comment here>
+            // return new Foo { .. };
+            SyntaxTriviaList returnLeadingTrivia =
+                objectCreation.Parent<ReturnStatementSyntax>()?.ReturnKeyword.LeadingTrivia ?? new SyntaxTriviaList();
 
-            // Did not recognize syntax to locate leading comment
-            return ImmutableArray<string>.Empty;
+            SyntaxTrivia[] allLeadingTrivia = leadingTrivianOfNewIdentifier
+                .Concat(localDeclarationLeadingTrivia)
+                .Concat(assignmentLeadingTrivia)
+                .Concat(returnLeadingTrivia)
+                .ToArray();
+
+            return GetIgnoredPropertyNames(allLeadingTrivia);
         }
 
         private static ImmutableArray<string> GetIgnoredPropertyNames(SyntaxTrivia[] singleLineComments)
