@@ -104,6 +104,7 @@ This saves a lot of typing and intellisense browsing.
 
 
 ### Future improvements
+* Code fix to ignore remaining missing members
 * Attributes to enable analysis for certain types
 * Attributes to ignore properties/fields
 * Configuration to enable/disable by default
