@@ -197,7 +197,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void IgnorePropertiesComment_BeforeLocalDeclaration_ExcludesPropertiesFromDiagnostic()
+        public void ExceptComment_BeforeLocalDeclaration_ExcludesPropertiesFromDiagnostic()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -237,7 +237,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void IgnorePropertiesComment_OnlyAffectsTheImmediatelyTrailingObjectInitializer()
+        public void ExceptComment_OnlyAffectsTheImmediatelyTrailingObjectInitializer()
         {
             var testContent = @"
 // ObjectInitializer_AssignAll enable
@@ -293,7 +293,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void IgnorePropertiesComment_BeforeObjectCreation_ExcludesPropertiesFromDiagnostic()
+        public void ExceptComment_BeforeObjectCreation_ExcludesPropertiesFromDiagnostic()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -333,7 +333,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void IgnorePropertiesComment_BeforeReturn_ExcludesPropertiesFromDiagnostic()
+        public void ExceptComment_BeforeReturn_ExcludesPropertiesFromDiagnostic()
         {
             var testContent = @"
 namespace SampleConsoleApp
@@ -373,7 +373,7 @@ namespace SampleConsoleApp
         }
 
         [TestMethod]
-        public void IgnorePropertiesComment_BeforeLambdaReturn_ExcludesPropertiesFromDiagnostic()
+        public void ExceptComment_BeforeLambdaReturn_ExcludesPropertiesFromDiagnostic()
         {
             var testContent = @"
 namespace SampleConsoleApp
