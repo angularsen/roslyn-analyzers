@@ -2,33 +2,30 @@
 {
     internal static class Program
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             // ObjectInitializer_AssignAll enable
-            var foo2 = new Foo
+            var foo = new Foo
             {
+                // Commented assignments after opening brace.
+                // PropCommented1 = 1,
 
+                // Assigned property, OK'ed by analyzer
+                PropAssigned = 1,
+
+                // Commented assignments just before closing brace
+                //PropCommented2 = ,
+                // PropCommented3=,
             };
-            //Foo foo = new Foo
-            //{
-            //    //PropInt = 1,
-            //    // ObjectInitializer_AssignAll disable
-            //    Bar = new Bar
-            //    {
-            //        //PropInt = 2
-            //    }
-            //};
         }
 
         private class Foo
         {
-            public int PropInt { get; set; }
-            public Bar Bar { get; internal set; }
-        }
-
-        private class Bar
-        {
-            public int PropInt { get; set; }
+            public int PropAssigned { get; set; }
+            public int PropCommented1 { get; set; }
+            public int PropCommented2 { get; set; }
+            public int PropCommented3 { get; set; }
+            public int PropUnassigned { get; set; }
         }
     }
 }
