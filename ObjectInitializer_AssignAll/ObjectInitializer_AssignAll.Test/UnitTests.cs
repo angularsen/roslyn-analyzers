@@ -207,7 +207,7 @@ namespace SampleConsoleApp
         private static void Main(string[] args)
         {
             // ObjectInitializer_AssignAll enable
-            // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+            // ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
             var foo = new Foo
             {
                 // These properties are not assigned, but also ignored by above comment
@@ -247,7 +247,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+            // ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
             var foo = new Foo
             {
                 // These properties are not assigned, but also ignored by above comment
@@ -303,7 +303,7 @@ namespace SampleConsoleApp
         private static void Main(string[] args)
         {
             // ObjectInitializer_AssignAll enable
-            // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+            // ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
             new Foo
             {
                 // These properties are not assigned, but also ignored by above comment
@@ -343,7 +343,7 @@ namespace SampleConsoleApp
         private static Foo Main()
         {
             // ObjectInitializer_AssignAll enable
-            // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+            // ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
             return new Foo
             {
                 // These properties are not assigned, but also ignored by above comment
@@ -384,7 +384,7 @@ namespace SampleConsoleApp
         {
             // ObjectInitializer_AssignAll enable
             var foos = Enumerable.Repeat(1, 10).Select(i => 
-            // ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+            // ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
                 new Foo
                 {
                     // These properties are not assigned, but also ignored by above comment

@@ -18,7 +18,7 @@ namespace ObjectInitializer_AssignAll
 
         private const string CommentPattern_Disable = "ObjectInitializer_AssignAll disable";
         private const string CommentPattern_Enable = "ObjectInitializer_AssignAll enable";
-        private const string CommentPattern_IgnoreProperties = "ObjectInitializer_AssignAll IgnoreProperties:";
+        private const string CommentPattern_Except = "ObjectInitializer_AssignAll except "; // Trailing whitespace important as there will be trailing text
         private const string Category = "Usage";
 
         private static readonly LocalizableString Title = new LocalizableResourceString(
@@ -216,10 +216,10 @@ namespace ObjectInitializer_AssignAll
             return singleLineComments.SelectMany(singleLineComment =>
             {
                 string commentText = singleLineComment.ToString().Replace("//", "").Trim();
-                if (commentText.StartsWith(CommentPattern_IgnoreProperties, StringComparison.OrdinalIgnoreCase))
+                if (commentText.StartsWith(CommentPattern_Except, StringComparison.OrdinalIgnoreCase))
                 {
                     string ignorePropertiesText =
-                        commentText.Substring(CommentPattern_IgnoreProperties.Length).Trim();
+                        commentText.Substring(CommentPattern_Except.Length).Trim();
 
                     return
                         ignorePropertiesText.Split(new[] {", ", ","}, StringSplitOptions.RemoveEmptyEntries);
