@@ -84,7 +84,7 @@ namespace SampleConsoleApp
             Foo foo = new Foo
             {
                 PropInt = 1,
-                // PropString = ""abc"",
+                // PropString not assigned
                 FieldBool = true
             };
         }
@@ -109,7 +109,7 @@ namespace SampleConsoleApp
             Foo foo = new Foo
             {
                 PropInt = 1,
-                // PropString = ""abc"",
+                // PropString not assigned
                 FieldBool = true
 ,
                 PropString = 

@@ -62,20 +62,17 @@ namespace SampleConsoleApp
             Foo foo = new Foo
             {
                 // PropInt not assigned, diagnostic error
-                // PropInt = 1,
 
                 // ObjectInitializer_AssignAll disable
                 Bar = new Bar
                 {
                     // PropInt not assigned, but analyzer is disabled, no diagnostic error
-                    // PropInt = 2,
 
                     // Re-enable analzyer for Baz creation
                     // ObjectInitializer_AssignAll enable
                     Baz = new Baz
                     {
                         // PropInt not assigned, diagnostic error
-                        // PropInt = 3,
                     }
                 }
             };
@@ -103,7 +100,7 @@ namespace SampleConsoleApp
             // Bar type has no diagnostic errors
             VerifyCSharpDiagnostic(testContent,
                 GetMissingAssignmentDiagnosticResult("Foo", 9, 23, "PropInt"),
-                GetMissingAssignmentDiagnosticResult("Baz", 22, 27, "PropInt")
+                GetMissingAssignmentDiagnosticResult("Baz", 20, 27, "PropInt")
             );
         }
 
@@ -121,7 +118,6 @@ namespace SampleConsoleApp
             Foo foo = new Foo
             {
                 // PropInt not assigned, diagnostic error
-                // PropInt = 1,
             };
         }
 
@@ -153,7 +149,6 @@ namespace SampleConsoleApp
             Bar foo = new Bar
             {
                 // PropInt not assigned, diagnostic error
-                // PropInt = 1,
             };
         }
 
@@ -163,7 +158,6 @@ namespace SampleConsoleApp
             Foo foo = new Foo
             {
                 // PropInt not assigned, diagnostic error
-                // PropInt = 1,
             };
         }
 
@@ -172,7 +166,6 @@ namespace SampleConsoleApp
             Bar foo = new Bar
             {
                 // PropInt not assigned, diagnostic error
-                // PropInt = 1,
             };
         }
 
@@ -191,8 +184,8 @@ namespace SampleConsoleApp
 
             // Bar type has no diagnostic errors
             VerifyCSharpDiagnostic(testContent,
-                GetMissingAssignmentDiagnosticResult("Foo", 18, 23, "PropInt"),
-                GetMissingAssignmentDiagnosticResult("Bar", 27, 23, "PropInt")
+                GetMissingAssignmentDiagnosticResult("Foo", 17, 23, "PropInt"),
+                GetMissingAssignmentDiagnosticResult("Bar", 25, 23, "PropInt")
             );
         }
 
@@ -210,12 +203,8 @@ namespace SampleConsoleApp
             // ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
             var foo = new Foo
             {
-                // These properties are not assigned, but also ignored by above comment
-                // PropIgnored1 = 1,
-                // PropIgnored2 = 1,
-
-                // This unassigned property will give diagnostic error
-                // PropUnassigned = 1,
+                // PropIgnored1 and PropIgnored2 not assigned, but also ignored by above comment
+                // PropUnassigned not assigned, diagnostic error
 
                 // Assigned property, OK'ed by analyzer
                 PropAssigned = 1
@@ -250,12 +239,8 @@ namespace SampleConsoleApp
             // ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
             var foo = new Foo
             {
-                // These properties are not assigned, but also ignored by above comment
-                // PropIgnored1 = 1,
-                // PropIgnored2 = 1,
-
-                // This unassigned property will give diagnostic error
-                // PropUnassigned = 1,
+                // PropIgnored1 and PropIgnored2 not assigned, but also ignored by above comment
+                // PropUnassigned not assigned, diagnostic error
 
                 // Assigned property, OK'ed by analyzer
                 PropAssigned = 1
@@ -264,12 +249,8 @@ namespace SampleConsoleApp
             // Analyzer should not ignore any properties for this object initializer
             var foo2 = new Foo
             {
-                // These properties should no longer be ignored, and should give diagnostic errors
-                // PropIgnored1 = 1,
-                // PropIgnored2 = 1,
-
-                // This unassigned property will give diagnostic error
-                // PropUnassigned = 1,
+                // PropIgnored1 and PropIgnored2 not assigned, but also ignored by above comment
+                // PropUnassigned not assigned, diagnostic error
 
                 // Assigned property, OK'ed by analyzer
                 PropAssigned = 1
@@ -288,7 +269,7 @@ namespace SampleConsoleApp
 ";
             VerifyCSharpDiagnostic(testContent,
                 GetMissingAssignmentDiagnosticResult("Foo", 10, 23, "PropUnassigned"),
-                GetMissingAssignmentDiagnosticResult("Foo", 24, 24, "PropIgnored1", "PropIgnored2", "PropUnassigned")
+                GetMissingAssignmentDiagnosticResult("Foo", 20, 24, "PropIgnored1", "PropIgnored2", "PropUnassigned")
             );
         }
 
@@ -306,12 +287,8 @@ namespace SampleConsoleApp
             // ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
             new Foo
             {
-                // These properties are not assigned, but also ignored by above comment
-                // PropIgnored1 = 1,
-                // PropIgnored2 = 1,
-
-                // This unassigned property will give diagnostic error
-                // PropUnassigned = 1,
+                // PropIgnored1 and PropIgnored2 not assigned, but also ignored by above comment
+                // PropUnassigned not assigned, diagnostic error
 
                 // Assigned property, OK'ed by analyzer
                 PropAssigned = 1
@@ -346,12 +323,8 @@ namespace SampleConsoleApp
             // ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
             return new Foo
             {
-                // These properties are not assigned, but also ignored by above comment
-                // PropIgnored1 = 1,
-                // PropIgnored2 = 1,
-
-                // This unassigned property will give diagnostic error
-                // PropUnassigned = 1,
+                // PropIgnored1 and PropIgnored2 not assigned, but also ignored by above comment
+                // PropUnassigned not assigned, diagnostic error
 
                 // Assigned property, OK'ed by analyzer
                 PropAssigned = 1
@@ -387,12 +360,8 @@ namespace SampleConsoleApp
             // ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
                 new Foo
                 {
-                    // These properties are not assigned, but also ignored by above comment
-                    // PropIgnored1 = 1,
-                    // PropIgnored2 = 1,
-
-                    // This unassigned property will give diagnostic error
-                    // PropUnassigned = 1,
+                    // PropIgnored1 and PropIgnored2 not assigned, but also ignored by above comment
+                    // PropUnassigned not assigned, diagnostic error
 
                     // Assigned property, OK'ed by analyzer
                     PropAssigned = 1
@@ -414,6 +383,48 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent, expected);
         }
 
+        // These properties are not assigned, but excluded from diagnostic due to being commented out.
+        // Test different whitespace variations and different positions in assignment expression list.
+        [TestMethod]
+        public void CommentedMemberAssignments_ExcludedFromDiagnostic()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main()
+        {
+            // ObjectInitializer_AssignAll enable
+            var foo = new Foo
+            {
+                // Commented assignments after opening brace.
+                // PropCommented1 = 1,
+
+                // Assigned property, OK'ed by analyzer
+                PropAssigned = 1,
+
+                // Commented assignments just before closing brace
+                //PropCommented2 = ,
+                // PropCommented3=,
+            };
+        }
+
+        private class Foo
+        {
+            public int PropAssigned { get; set; }
+            public int PropCommented1 { get; set; }
+            public int PropCommented2 { get; set; }
+            public int PropCommented3 { get; set; }
+            public int PropUnassigned { get; set; }
+        }
+    }
+}
+";
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 9, 23, "PropUnassigned");
+            VerifyCSharpDiagnostic(testContent, expected);
+        }
+
         [TestMethod]
         public void PropertiesNotAssigned_AddsDiagnosticWithPropertyNames()
         {
@@ -427,9 +438,7 @@ namespace SampleConsoleApp
             // ObjectInitializer_AssignAll enable
             var foo = new Foo
             {
-                // Diagnostics should flag that these properties are not set
-                // PropInt = 1,
-                // PropString = ""my string""
+                // ProtInt and PropString not assigned, diagnostic error
             };
         }
 
@@ -643,8 +652,7 @@ namespace SampleConsoleApp
             // ObjectInitializer_AssignAll enable
             var foo = new Foo
             {
-                // Not assigned, should give error
-                // FieldInt = 1,
+                // FieldInt not assigned, diagnostic error
             };
         }
 
@@ -679,8 +687,7 @@ namespace SampleConsoleApp
             // ObjectInitializer_AssignAll enable
             var foo = new Foo
             {
-                // The implementation is currently limited to public only, so all other access modifiers will be ignored
-                // FieldInt = 1,
+                // FieldInt not assigned, diagnostic currently limited to public only, so all other access modifiers will be ignored
             };
         }
 

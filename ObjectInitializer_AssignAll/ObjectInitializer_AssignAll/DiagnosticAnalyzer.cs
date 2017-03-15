@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -37,6 +38,12 @@ namespace ObjectInitializer_AssignAll
             "https://github.com/anjdreas/roslyn-analyzers#objectinitializer_assignall");
 
         private ImmutableArray<TextSpan> _analyzerEnabledInTextSpans;
+
+        /// <summary>
+        ///     Regex that identifies:
+        ///     Group 1: Name of property/field in commented assignment
+        /// </summary>
+        private static readonly Regex CommentedMemberAssignmentRegex = new Regex(@"\/\/\s*(\w+)\s*=");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule)
             ;
@@ -167,6 +174,14 @@ namespace ObjectInitializer_AssignAll
 
         private static ImmutableArray<string> GetIgnoredPropertyNames(ObjectCreationExpressionSyntax objectCreation)
         {
+            ImmutableArray<string> propertiesByExceptComment = GetIgnoredPropertyNamesFromExceptComment(objectCreation);
+            ImmutableArray<string> propertiesByCommentedAssignment = GetIgnoredPropertyNamesFromCommentedAssignments(objectCreation);
+
+            return propertiesByExceptComment.AddRange(propertiesByCommentedAssignment);
+        }
+
+        private static ImmutableArray<string> GetIgnoredPropertyNamesFromExceptComment(ObjectCreationExpressionSyntax objectCreation)
+        {
             // Case 1: Comment before 'new' identifier in object creation (lambda return statement)
             // <comment here>
             // new Foo { .. };
@@ -208,10 +223,41 @@ namespace ObjectInitializer_AssignAll
                 .Concat(returnLeadingTrivia)
                 .ToArray();
 
-            return GetIgnoredPropertyNames(allLeadingTrivia);
+            return GetIgnoredPropertyNamesFromExceptComment(allLeadingTrivia);
         }
 
-        private static ImmutableArray<string> GetIgnoredPropertyNames(SyntaxTrivia[] singleLineComments)
+        private static ImmutableArray<string> GetIgnoredPropertyNamesFromCommentedAssignments(ObjectCreationExpressionSyntax objectCreation)
+        {
+            // Case 1: Commented member assignments before one or more actual member assignments
+            // return new Foo {
+            //   // Prop1 = null,
+            //   // Prop2 = null,
+            //   Prop3 = 1
+            // };
+            SyntaxTriviaList memberAssignmentsLeadingTrivia =
+                new SyntaxTriviaList().AddRange(objectCreation.Initializer.Expressions
+                    .OfType<AssignmentExpressionSyntax>()
+                    .SelectMany(e => e.Left.GetLeadingTrivia()));
+
+            // Case 2: Commented member assignments before closing brace
+            // return new Foo {
+            //   Prop3 = 1
+            //   // Prop1 = null,
+            //   // Prop2 = null,
+            // };
+            SyntaxTriviaList closingBraceLeadingTrivia = objectCreation.Initializer.CloseBraceToken.LeadingTrivia;
+
+            return
+                memberAssignmentsLeadingTrivia
+                    .Concat(closingBraceLeadingTrivia)
+                    .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                    .Select(trivia => CommentedMemberAssignmentRegex.Match(trivia.ToString()))
+                    .Where(match => match.Success)
+                    .Select(match => match.Groups[1].Value)
+                    .ToImmutableArray();
+        }
+
+        private static ImmutableArray<string> GetIgnoredPropertyNamesFromExceptComment(SyntaxTrivia[] singleLineComments)
         {
             return singleLineComments.SelectMany(singleLineComment =>
             {
