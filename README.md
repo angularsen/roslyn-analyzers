@@ -10,7 +10,7 @@ I previously used [AutoMapper](http://automapper.org/) to help with that, but no
 * [Installation](#installation)
 * [Sample](#sample)
 * [Enable/disable by comments](#enabledisable-by-comments)
-* [Ignore properties](#ignore-properties)
+* [Ignore properties and fields](#ignore-properties-and-fields)
 * [Code fix: Assign all members](#code-fix-assign-all-members)
 * [Future improvements](#future-improvements)
 
@@ -69,11 +69,11 @@ Foo foo = new Foo
 };
 ```
 
-### Ignore properties
+### Ignore properties and fields
 The `IgnoreProperties` comment must occur immediately before the object creation and object initializer. It will only affect this single initializer. For nested properties with their own initializers, separate comments must be added to ignore properties in those.
 ```csharp
 // ObjectInitializer_AssignAll enable
-// ObjectInitializer_AssignAll IgnoreProperties: PropIgnored1, PropIgnored2, NonExistingProp
+// ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
 var foo = new Foo
 {
     // These properties are not assigned, but also ignored by above comment
