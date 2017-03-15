@@ -19,7 +19,6 @@ namespace ObjectInitializer_AssignAll
 
         private const string CommentPattern_Disable = "ObjectInitializer_AssignAll disable";
         private const string CommentPattern_Enable = "ObjectInitializer_AssignAll enable";
-        private const string CommentPattern_Except = "ObjectInitializer_AssignAll except "; // Trailing whitespace important as there will be trailing text
         private const string Category = "Usage";
 
         private static readonly LocalizableString Title = new LocalizableResourceString(
@@ -174,56 +173,8 @@ namespace ObjectInitializer_AssignAll
 
         private static ImmutableArray<string> GetIgnoredPropertyNames(ObjectCreationExpressionSyntax objectCreation)
         {
-            ImmutableArray<string> propertiesByExceptComment = GetIgnoredPropertyNamesFromExceptComment(objectCreation);
             ImmutableArray<string> propertiesByCommentedAssignment = GetIgnoredPropertyNamesFromCommentedAssignments(objectCreation);
-
-            return propertiesByExceptComment.AddRange(propertiesByCommentedAssignment);
-        }
-
-        private static ImmutableArray<string> GetIgnoredPropertyNamesFromExceptComment(ObjectCreationExpressionSyntax objectCreation)
-        {
-            // Case 1: Comment before 'new' identifier in object creation (lambda return statement)
-            // <comment here>
-            // new Foo { .. };
-            // Did not recognize syntax to locate leading comment for object initializer
-            SyntaxTriviaList leadingTrivianOfNewIdentifier = objectCreation.NewKeyword.LeadingTrivia;
-
-            // Case 2: Comment before variable declaration and assignment:
-            // <comment here>
-            // Foo foo = new Foo { .. };
-            SyntaxTriviaList localDeclarationLeadingTrivia = objectCreation.Parent(SyntaxKind.EqualsValueClause)?
-                                                                 .Parent(SyntaxKind.VariableDeclarator)?
-                                                                 .Parent<VariableDeclarationSyntax>()?
-                                                                 .ChildNodes()
-                                                                 .OfType<IdentifierNameSyntax>()
-                                                                 .First()
-                                                                 .Identifier.LeadingTrivia ?? new SyntaxTriviaList();
-
-            // Case 3: Comment before assignment (no declaration, existing variable or member assignment)
-            // Foo foo;
-            // <comment here>
-            // foo = new Foo { .. };
-            SyntaxTriviaList assignmentLeadingTrivia = objectCreation.Parent<AssignmentExpressionSyntax>(
-                                                               SyntaxKind.SimpleAssignmentExpression)?
-                                                           .ChildNodes()
-                                                           .OfType<IdentifierNameSyntax>()
-                                                           .First()
-                                                           .Identifier.LeadingTrivia ?? new SyntaxTriviaList();
-
-
-            // Case 4: Comment before return statement
-            // <comment here>
-            // return new Foo { .. };
-            SyntaxTriviaList returnLeadingTrivia =
-                objectCreation.Parent<ReturnStatementSyntax>()?.ReturnKeyword.LeadingTrivia ?? new SyntaxTriviaList();
-
-            SyntaxTrivia[] allLeadingTrivia = leadingTrivianOfNewIdentifier
-                .Concat(localDeclarationLeadingTrivia)
-                .Concat(assignmentLeadingTrivia)
-                .Concat(returnLeadingTrivia)
-                .ToArray();
-
-            return GetIgnoredPropertyNamesFromExceptComment(allLeadingTrivia);
+            return propertiesByCommentedAssignment;
         }
 
         private static ImmutableArray<string> GetIgnoredPropertyNamesFromCommentedAssignments(ObjectCreationExpressionSyntax objectCreation)
@@ -255,24 +206,6 @@ namespace ObjectInitializer_AssignAll
                     .Where(match => match.Success)
                     .Select(match => match.Groups[1].Value)
                     .ToImmutableArray();
-        }
-
-        private static ImmutableArray<string> GetIgnoredPropertyNamesFromExceptComment(SyntaxTrivia[] singleLineComments)
-        {
-            return singleLineComments.SelectMany(singleLineComment =>
-            {
-                string commentText = singleLineComment.ToString().Replace("//", "").Trim();
-                if (commentText.StartsWith(CommentPattern_Except, StringComparison.OrdinalIgnoreCase))
-                {
-                    string ignorePropertiesText =
-                        commentText.Substring(CommentPattern_Except.Length).Trim();
-
-                    return
-                        ignorePropertiesText.Split(new[] {", ", ","}, StringSplitOptions.RemoveEmptyEntries);
-                }
-
-                return Enumerable.Empty<string>();
-            }).ToImmutableArray();
         }
 
         private bool IsAnalysisEnabledForSyntaxPosition(SyntaxNode initializer)
