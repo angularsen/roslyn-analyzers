@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace ObjectInitializer_AssignAll
@@ -14,7 +13,7 @@ namespace ObjectInitializer_AssignAll
         /// <typeparam name="TParent"></typeparam>
         /// <param name="node">Node to get parent of.</param>
         /// <param name="kind">Optionally require parent to also be of this kind.</param>
-        [CanBeNull]
+        /// <returns>Parent or null if not found or not matching type or kind.</returns>
         public static TParent Parent<TParent>(this SyntaxNode node, SyntaxKind? kind = null) where TParent : SyntaxNode
         {
             TParent parent = node.Parent as TParent;
@@ -29,7 +28,7 @@ namespace ObjectInitializer_AssignAll
         /// </summary>
         /// <param name="node">Node to get parent of.</param>
         /// <param name="kind">Require parent to be of this kind.</param>
-        [CanBeNull]
+        /// <returns>Parent or null if not found or not matching kind.</returns>
         public static SyntaxNode Parent(this SyntaxNode node, SyntaxKind kind)
         {
             SyntaxNode parent = node.Parent;
