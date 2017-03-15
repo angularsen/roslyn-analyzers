@@ -71,7 +71,7 @@ Simply comment out the member assignments you want to ignore. This is particular
 // ObjectInitializer_AssignAll enable
 var foo = new Foo
 {
-    // Ignore these assignments by commenting them out. It is whitespace tolerant.
+    // Ignore these assignments by commenting them out, it is whitespace tolerant
     // PropIgnored1 = ,
     //PropIgnored2=2,
 
