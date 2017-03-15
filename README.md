@@ -26,16 +26,16 @@ private static void UnassignedMembersGiveBuildError()
     // ObjectInitializer_AssignAll enable
     var foo = new Foo
     {
-        // Diagnostics should flag that these properties are not set
-        // PropInt = 1,
-        // PropString = ""my string""
+        // UnassignedProp and UnassignedField not assigned, diagnostic error lists both
+        AssignedProp = true
     };
 }
 
 private class Foo
 {
-    public int PropInt { get; set; }
-    public string PropString { get; set; }
+    public bool AssignedProp { get; set; }
+    public int UnassignedProp { get; set; }
+    public int UnassignedField;
 }
 ```
 
@@ -50,40 +50,32 @@ Analysis must be explicitly enabled by a special comment, and can be disabled an
 Foo foo = new Foo
 {
     // PropInt not assigned, diagnostic error
-    // PropInt = 1,
 
     // ObjectInitializer_AssignAll disable
     Bar = new Bar
     {
         // PropInt not assigned, but analyzer is disabled, no diagnostic error
-        // PropInt = 2,
 
-        // Re-enable analzyer for Baz creation
         // ObjectInitializer_AssignAll enable
         Baz = new Baz
         {
-            // PropInt not assigned, diagnostic error
-            // PropInt = 3,
+            // PropInt not assigned, analysis re-enabled, diagnostic error
         }
     }
 };
 ```
 
 ### Ignore properties and fields
-The `IgnoreProperties` comment must occur immediately before the object creation and object initializer. It will only affect this single initializer. For nested properties with their own initializers, separate comments must be added to ignore properties in those.
+Simply comment out the member assignments you want to ignore. This is particularly convenient when using the [codefix](#code-fix-assign-all-members) to first generate all member assignments, then commenting out the ones you want to skip.
 ```csharp
 // ObjectInitializer_AssignAll enable
-// ObjectInitializer_AssignAll except PropIgnored1, PropIgnored2, NonExistingProp
 var foo = new Foo
 {
-    // These properties are not assigned, but also ignored by above comment
-    // PropIgnored1 = 1,
-    // PropIgnored2 = 1,
+    // Ignore these assignments by commenting them out. It is whitespace tolerant.
+    // PropIgnored1 = ,
+    //PropIgnored2=2,
 
-    // This unassigned property will give diagnostic error
-    // PropUnassigned = 1,
-
-    // Assigned property, OK'ed by analyzer
+    // PropUnassigned is unassigned and not commented out, diagnostic error
     PropAssigned = 1
 };
 
