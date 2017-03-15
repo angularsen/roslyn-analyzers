@@ -2,7 +2,8 @@
 Collection of useful Roslyn analyzers and code fixes.
 
 ## ObjectInitializer_AssignAll
-Diagnostic error if there are unassigned members in an object initializer.
+Diagnostic error if there are unassigned members in an object initializer and a code fix to add the missing ones.
+
 This is particularly useful when mapping between types, such as DTO types and database entity types. It ensures you don't forget to update the mapping when a new property is added or refactored.
 
 I previously used [AutoMapper](http://automapper.org/) to help with that, but now I can finally go back to good old object initializers that in my experience are easier to set up and as performant as can be.
