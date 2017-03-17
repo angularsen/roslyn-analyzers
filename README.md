@@ -97,6 +97,7 @@ This saves a lot of typing and intellisense browsing.
 
 
 ### Future improvements
+* Similar diagnostic for constructors (Constructor_AssignAll)
 * Code fix to ignore remaining missing members
 * Attributes to enable analysis for certain types
 * Attributes to ignore properties/fields
