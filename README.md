@@ -1,3 +1,5 @@
+[![Flattr this git repo](https://button.flattr.com/flattr-badge-large.png)](https://flattr.com/submit/auto?fid=g37dpx&url=https://github.com/anjdreas/roslyn-analyzers/&title=Roslyn%20analyzers&language=en-US&tags=github&category=software)
+
 # roslyn-analyzers
 Collection of useful Roslyn analyzers and code fixes.
 
