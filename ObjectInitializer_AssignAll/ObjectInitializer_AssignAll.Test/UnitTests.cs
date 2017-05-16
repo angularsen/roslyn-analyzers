@@ -473,6 +473,29 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent, expected);
         }
 
+
+        [TestMethod]
+        public void FieldDeclaration_IsAnalyzed()
+        {
+            var testContent = @"
+// ObjectInitializer_AssignAll enable
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static readonly Foo _myField = new Foo { };
+
+        private class Foo
+        {
+            public int FieldInt;
+        }
+    }
+}
+";
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 7, 48, 0, "FieldInt");
+            VerifyCSharpDiagnostic(testContent, expected);
+        }
+
         /// <remarks>
         ///     TODO Revisit this when the implementation supports looking at context and whether the member can be assigned
         ///     or not.
