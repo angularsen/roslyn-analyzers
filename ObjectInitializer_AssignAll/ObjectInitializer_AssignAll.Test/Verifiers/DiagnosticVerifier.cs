@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace TestHelper
+namespace AssignAll.Test.Verifiers
 {
     /// <summary>
     ///     Superclass of all Unit Tests for DiagnosticAnalyzers
@@ -148,7 +148,7 @@ namespace TestHelper
         private void VerifyDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer,
             params DiagnosticResult[] expected)
         {
-            Diagnostic[] diagnostics = GetSortedDiagnostics(sources, language, analyzer);
+            Diagnostic[] diagnostics = DiagnosticVerifier.GetSortedDiagnostics(sources, language, analyzer);
             VerifyDiagnosticResults(diagnostics, analyzer, expected);
         }
 

@@ -11,16 +11,16 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace ObjectInitializer_AssignAll
+namespace AssignAll
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ObjectInitializer_AssignAllCodeFixProvider))]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(AssignAll_CodeFixProvider))]
     [Shared]
-    public class ObjectInitializer_AssignAllCodeFixProvider : CodeFixProvider
+    public class AssignAll_CodeFixProvider : CodeFixProvider
     {
         private const string Title = "Assign all members";
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(ObjectInitializer_AssignAllAnalyzer.DiagnosticId);
+            ImmutableArray.Create(AssignAll_Analyzer.DiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
@@ -91,7 +91,7 @@ namespace ObjectInitializer_AssignAll
             string unassignedMemberNamesValue;
             if (
                 !diagnostic.Properties.TryGetValue(
-                    ObjectInitializer_AssignAllAnalyzer.Properties_UnassignedMemberNames, out unassignedMemberNamesValue))
+                    AssignAll_Analyzer.Properties_UnassignedMemberNames, out unassignedMemberNamesValue))
                 return new string[0];
 
             return unassignedMemberNamesValue.Split(new[] {","}, StringSplitOptions.RemoveEmptyEntries)

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace TestHelper
+namespace AssignAll.Test.Verifiers
 {
     /// <summary>
     ///     Superclass of all Unit tests made for diagnostics with codefixes.
@@ -97,7 +97,7 @@ namespace TestHelper
         {
             Document document = CreateDocument(oldSource, language);
             Diagnostic[] analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] {document});
-            IList<Diagnostic> compilerDiagnostics = GetCompilerDiagnostics(document).ToList();
+            IList<Diagnostic> compilerDiagnostics = CodeFixVerifier.GetCompilerDiagnostics(document).ToList();
             int attempts = analyzerDiagnostics.Length;
 
             for (var i = 0; i < attempts; ++i)
@@ -112,18 +112,18 @@ namespace TestHelper
 
                 if (codeFixIndex != null)
                 {
-                    document = ApplyFix(document, actions.ElementAt((int) codeFixIndex));
+                    document = CodeFixVerifier.ApplyFix(document, actions.ElementAt((int) codeFixIndex));
                     break;
                 }
 
-                document = ApplyFix(document, actions.ElementAt(0));
+                document = CodeFixVerifier.ApplyFix(document, actions.ElementAt(0));
                 if (verifyDiagnosticsRemovedByCodeFix)
                 {
                     Diagnostic[] analyzerDiagnosticsAfterCodeFix = GetSortedDiagnosticsFromDocuments(analyzer,
                         new[] {document});
 
-                    IEnumerable<Diagnostic> newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics,
-                        GetCompilerDiagnostics(document));
+                    IEnumerable<Diagnostic> newCompilerDiagnostics = CodeFixVerifier.GetNewDiagnostics(compilerDiagnostics,
+                        CodeFixVerifier.GetCompilerDiagnostics(document));
 
                     //check if applying the code fix introduced any new compiler diagnostics
                     if (!allowNewCompilerDiagnostics && newCompilerDiagnostics.Any())
@@ -132,7 +132,7 @@ namespace TestHelper
                         document =
                             document.WithSyntaxRoot(Formatter.Format(document.GetSyntaxRootAsync().Result,
                                 Formatter.Annotation, document.Project.Solution.Workspace));
-                        newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, GetCompilerDiagnostics(document));
+                        newCompilerDiagnostics = CodeFixVerifier.GetNewDiagnostics(compilerDiagnostics, CodeFixVerifier.GetCompilerDiagnostics(document));
 
                         Assert.IsTrue(false,
                             $@"Fix introduced new compiler diagnostics:
@@ -150,7 +150,7 @@ New document:
             }
 
             //after applying all of the code fixes, compare the resulting string to the inputted one
-            string actual = GetStringFromDocument(document);
+            string actual = CodeFixVerifier.GetStringFromDocument(document);
             Assert.AreEqual(newSource, actual);
         }
     }

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
-namespace ObjectInitializer_AssignAll
+namespace AssignAll
 {
     internal static class RegionsToAnalyzeProvider
     {
@@ -22,14 +22,14 @@ namespace ObjectInitializer_AssignAll
             foreach (SyntaxTrivia comment in singleLineCommentsInEntireFile)
             {
                 string commentText = comment.ToString().Replace("//", "").Trim();
-                if (commentText.Equals(ObjectInitializer_AssignAllAnalyzer.CommentPattern_Enable,
+                if (commentText.Equals(AssignAll_Analyzer.CommentPattern_Enable,
                     StringComparison.OrdinalIgnoreCase))
                 {
                     // Start of enable analyzer text span
                     enabledTextSpans.Add(new TextSpan(comment.SpanStart,
                         rootNode.FullSpan.End - comment.SpanStart + 1));
                 }
-                else if (commentText.Equals(ObjectInitializer_AssignAllAnalyzer.CommentPattern_Disable,
+                else if (commentText.Equals(AssignAll_Analyzer.CommentPattern_Disable,
                     StringComparison.OrdinalIgnoreCase))
                 {
                     // End of enable analyzer text span

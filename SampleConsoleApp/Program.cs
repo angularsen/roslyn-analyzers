@@ -4,7 +4,7 @@
     {
         private static void Main()
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             var foo = new Foo
             {
                 // Commented assignments after opening brace.

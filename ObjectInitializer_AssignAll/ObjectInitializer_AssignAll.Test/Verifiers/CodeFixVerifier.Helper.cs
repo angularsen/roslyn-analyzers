@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 
-namespace TestHelper
+namespace AssignAll.Test.Verifiers
 {
     /// <summary>
     ///     Diagnostic Producer class with extra methods dealing with applying codefixes

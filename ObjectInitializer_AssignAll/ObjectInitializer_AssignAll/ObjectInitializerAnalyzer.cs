@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ObjectInitializer_AssignAll
+namespace AssignAll
 {
     internal class ObjectInitializerAnalyzer
     {
@@ -91,13 +91,13 @@ namespace ObjectInitializer_AssignAll
                     new Dictionary<string, string>
                         {
                             {
-                                ObjectInitializer_AssignAllAnalyzer.Properties_UnassignedMemberNames,
+                                AssignAll_Analyzer.Properties_UnassignedMemberNames,
                                 unassignedMembersString
                             }
                         }
                         .ToImmutableDictionary();
 
-                Diagnostic diagnostic = Diagnostic.Create(ObjectInitializer_AssignAllAnalyzer.Rule,
+                Diagnostic diagnostic = Diagnostic.Create(AssignAll_Analyzer.Rule,
                     objectCreation.GetLocation(),
                     //ctx.Node.GetLocation(),
                     properties, objectCreationNamedType.Name, unassignedMembersString);
@@ -143,7 +143,7 @@ namespace ObjectInitializer_AssignAll
                 memberAssignmentsLeadingTrivia
                     .Concat(closingBraceLeadingTrivia)
                     .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                    .Select(trivia => ObjectInitializer_AssignAllAnalyzer.CommentedMemberAssignmentRegex
+                    .Select(trivia => AssignAll_Analyzer.CommentedMemberAssignmentRegex
                         .Match(trivia.ToString()))
                     .Where(match => match.Success)
                     .Select(match => match.Groups[1].Value)

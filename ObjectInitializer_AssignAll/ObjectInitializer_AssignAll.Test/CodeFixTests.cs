@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestHelper;
+using CodeFixVerifier = AssignAll.Test.Verifiers.CodeFixVerifier;
 
-namespace ObjectInitializer_AssignAll.Test
+namespace AssignAll.Test
 {
     [TestClass]
     public class CodeFixTests : CodeFixVerifier
@@ -25,7 +25,7 @@ namespace SampleConsoleApp
 
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             Foo foo = new Foo
             {
             };
@@ -47,7 +47,7 @@ namespace SampleConsoleApp
 
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             Foo foo = new Foo
             {
                 PropInt = ,
@@ -80,7 +80,7 @@ namespace SampleConsoleApp
 
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             Foo foo = new Foo
             {
                 PropInt = 1,
@@ -105,7 +105,7 @@ namespace SampleConsoleApp
 
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             Foo foo = new Foo
             {
                 PropInt = 1,
@@ -126,12 +126,12 @@ namespace SampleConsoleApp
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new ObjectInitializer_AssignAllAnalyzer();
+            return new AssignAll_Analyzer();
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new ObjectInitializer_AssignAllCodeFixProvider();
+            return new AssignAll_CodeFixProvider();
         }
 
     }

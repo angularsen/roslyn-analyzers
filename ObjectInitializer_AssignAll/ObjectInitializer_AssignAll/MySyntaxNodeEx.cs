@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace ObjectInitializer_AssignAll
+namespace AssignAll
 {
     internal static class MySyntaxNodeEx
     {

@@ -34,8 +34,8 @@
     <ProjectGuid>{B176E12E-F1EB-4776-9D13-3F4E9064E08D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ObjectInitializer_AssignAll.Vsix</RootNamespace>
-    <AssemblyName>ObjectInitializer_AssignAll.Vsix</AssemblyName>
+    <RootNamespace>AssignAll.Vsix</RootNamespace>
+    <AssemblyName>AssignAll.Vsix</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
@@ -73,9 +73,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ObjectInitializer_AssignAll\ObjectInitializer_AssignAll.csproj">
+    <ProjectReference Include="..\ObjectInitializer_AssignAll\AssignAll.csproj">
       <Project>{0D09FF78-4E40-4B3A-A8A5-228248C57B0A}</Project>
-      <Name>ObjectInitializer_AssignAll</Name>
+      <Name>AssignAll</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -6,16 +6,16 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ObjectInitializer_AssignAll
+namespace AssignAll
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class ObjectInitializer_AssignAllAnalyzer : DiagnosticAnalyzer
+    public class AssignAll_Analyzer : DiagnosticAnalyzer
     {
         internal const string Properties_UnassignedMemberNames = "UnassignedMemberNames";
-        internal const string DiagnosticId = "ObjectInitializer_AssignAll";
+        internal const string DiagnosticId = "AssignAll";
 
-        internal const string CommentPattern_Disable = "ObjectInitializer_AssignAll disable";
-        internal const string CommentPattern_Enable = "ObjectInitializer_AssignAll enable";
+        internal const string CommentPattern_Disable = "AssignAll disable";
+        internal const string CommentPattern_Enable = "AssignAll enable";
         private const string Category = "Usage";
 
         private const int MaxRootNodeCacheCount = 10;

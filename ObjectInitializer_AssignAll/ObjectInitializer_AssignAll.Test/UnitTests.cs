@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestHelper;
+using CodeFixVerifier = AssignAll.Test.Verifiers.CodeFixVerifier;
 
-namespace ObjectInitializer_AssignAll.Test
+namespace AssignAll.Test
 {
     [TestClass]
     public class UnitTest : CodeFixVerifier
@@ -26,7 +26,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             Foo foo = new Foo
             {
                 PropInt = 1,
@@ -58,18 +58,18 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             Foo foo = new Foo
             {
                 // PropInt not assigned, diagnostic error
 
-                // ObjectInitializer_AssignAll disable
+                // AssignAll disable
                 Bar = new Bar
                 {
                     // PropInt not assigned, but analyzer is disabled, no diagnostic error
 
                     // Re-enable analzyer for Baz creation
-                    // ObjectInitializer_AssignAll enable
+                    // AssignAll enable
                     Baz = new Baz
                     {
                         // PropInt not assigned, diagnostic error
@@ -108,7 +108,7 @@ namespace SampleConsoleApp
         public void EnableCommentAtTopOfFile_EnablesAnalyzerForEntireFile()
         {
             var testContent = @"
-// ObjectInitializer_AssignAll enable
+// AssignAll enable
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -154,7 +154,7 @@ namespace SampleConsoleApp
 
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             Foo foo = new Foo
             {
                 // PropInt not assigned, diagnostic error
@@ -201,7 +201,7 @@ namespace SampleConsoleApp
     {
         private static void Main()
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             var foo = new Foo
             {
                 // Commented assignments after opening brace.
@@ -241,7 +241,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             var foo = new Foo
             {
                 // ProtInt and PropString not assigned, diagnostic error
@@ -300,7 +300,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             var foo = new Foo
             {
             };
@@ -326,7 +326,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             var foo = new Foo
             {
             };
@@ -353,7 +353,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             var foo = new Foo
             {
                 // Cannot assign read-only property
@@ -381,7 +381,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             var foo = new Foo
             {
                 // Cannot assign read-only field
@@ -455,7 +455,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             var foo = new Foo
             {
                 // FieldInt not assigned, diagnostic error
@@ -478,7 +478,7 @@ namespace SampleConsoleApp
         public void FieldDeclaration_IsAnalyzed()
         {
             var testContent = @"
-// ObjectInitializer_AssignAll enable
+// AssignAll enable
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -513,7 +513,7 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             var foo = new Foo
             {
                 // FieldInt not assigned, diagnostic currently limited to public only, so all other access modifiers will be ignored
@@ -543,7 +543,7 @@ namespace SampleConsoleApp
         private static void Main(string[] args)
         {
             // Unassigned properties and fields are ignored for this type of construction
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             var foo = new Foo();
             // foo.FieldInt = 1;
         }
@@ -609,7 +609,7 @@ namespace TestCode
     {
         private static void Initialize()
         {
-            // ObjectInitializer_AssignAll enable
+            // AssignAll enable
             var foo = new Foo
             {
             };
@@ -639,7 +639,7 @@ namespace TestCode
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new ObjectInitializer_AssignAllAnalyzer();
+            return new AssignAll_Analyzer();
         }
 
         private static DiagnosticResult GetMissingAssignmentDiagnosticResult(string createdObjectTypeName, int line,
@@ -650,7 +650,7 @@ namespace TestCode
             string unassignedMembersString = string.Join(", ", unassignedMemberNames);
             DiagnosticResult expected = new DiagnosticResult
             {
-                Id = "ObjectInitializer_AssignAll",
+                Id = "AssignAll",
                 Message =
                     $"Missing member assignments in object initializer for type '{createdObjectTypeName}'. Properties: {unassignedMembersString}",
                 Severity = DiagnosticSeverity.Error,
