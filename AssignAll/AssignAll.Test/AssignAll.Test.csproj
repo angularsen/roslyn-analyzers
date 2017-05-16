@@ -103,7 +103,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ObjectInitializer_AssignAll\AssignAll.csproj">
+    <ProjectReference Include="..\AssignAll\AssignAll.csproj">
       <Project>{0D09FF78-4E40-4B3A-A8A5-228248C57B0A}</Project>
       <Name>AssignAll</Name>
     </ProjectReference>

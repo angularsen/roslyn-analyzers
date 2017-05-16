@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssignAll", "ObjectInitializer_AssignAll\ObjectInitializer_AssignAll\AssignAll.csproj", "{0D09FF78-4E40-4B3A-A8A5-228248C57B0A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssignAll", "AssignAll\AssignAll\AssignAll.csproj", "{0D09FF78-4E40-4B3A-A8A5-228248C57B0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssignAll.Test", "ObjectInitializer_AssignAll\ObjectInitializer_AssignAll.Test\AssignAll.Test.csproj", "{A688797A-94FA-428C-9815-DCC927C1293A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssignAll.Test", "AssignAll\AssignAll.Test\AssignAll.Test.csproj", "{A688797A-94FA-428C-9815-DCC927C1293A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssignAll.Vsix", "ObjectInitializer_AssignAll\ObjectInitializer_AssignAll.Vsix\AssignAll.Vsix.csproj", "{B176E12E-F1EB-4776-9D13-3F4E9064E08D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssignAll.Vsix", "AssignAll\AssignAll.Vsix\AssignAll.Vsix.csproj", "{B176E12E-F1EB-4776-9D13-3F4E9064E08D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleConsoleApp", "SampleConsoleApp\SampleConsoleApp.csproj", "{50FFCAEA-07D5-493E-8904-DEE6A7D9BE0D}"
 EndProject
