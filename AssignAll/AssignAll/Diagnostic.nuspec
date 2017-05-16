@@ -7,7 +7,7 @@
     <authors>Andreas Gullberg Larsen</authors>
     <owners>Andreas Gullberg Larsen</owners>
     <licenseUrl>https://github.com/anjdreas/roslyn-analyzers/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/anjdreas/roslyn-analyzers#objectinitializer_assignall</projectUrl>
+    <projectUrl>https://github.com/anjdreas/roslyn-analyzers#assignall</projectUrl>
 <!--    <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Diagnostic and code fix to ensure all members are assigned in an object initializer. Enable with comment: // AssignAll enable</description>
