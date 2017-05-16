@@ -535,6 +535,33 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
+        [TestMethod]
+        public void DoesNotAddDiagnostics_IfNoEnableCommentAbove()
+        {
+            var testContent = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            var foo = new Foo
+            {
+                // Missing property assignments, but diagnostics not enabled by comment
+            };
+        }
+
+        private class Foo
+        {
+            public int PropInt { get; set; }
+            public string PropString { get; set; }
+        }
+    }
+}
+";
+            VerifyCSharpDiagnostic(testContent);
+        }
+
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new ObjectInitializer_AssignAllAnalyzer();
