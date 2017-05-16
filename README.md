@@ -3,7 +3,7 @@
 # roslyn-analyzers
 Collection of useful Roslyn analyzers and code fixes.
 
-## AssignAll - ObjectInitializers
+## AssignAll
 Diagnostic error if there are unassigned members in an object initializer and a code fix to add the missing ones.
 
 This is particularly useful when mapping between types, such as DTO types and database entity types. It ensures you don't forget to update the mapping when a new property is added or refactored.
