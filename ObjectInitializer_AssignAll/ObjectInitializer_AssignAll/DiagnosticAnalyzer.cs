@@ -36,181 +36,200 @@ namespace ObjectInitializer_AssignAll
             Category, DiagnosticSeverity.Error, true, Description,
             "https://github.com/anjdreas/roslyn-analyzers#objectinitializer_assignall");
 
-        private ImmutableArray<TextSpan> _analyzerEnabledInTextSpans;
-
         /// <summary>
         ///     Regex that identifies:
         ///     Group 1: Name of property/field in commented assignment
         /// </summary>
         private static readonly Regex CommentedMemberAssignmentRegex = new Regex(@"\/\/\s*(\w+)\s*=");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule)
-            ;
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
+            ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext ctx)
         {
-            ctx.RegisterSyntaxTreeAction(AnalyzeComments);
-            ctx.RegisterSyntaxNodeAction(AnalyzeObjectInitializers, SyntaxKind.ObjectInitializerExpression);
+            ctx.RegisterCodeBlockStartAction<SyntaxKind>(block =>
+            {
+                CodeBlockAnalyzer codeBlockAnalyzer = new CodeBlockAnalyzer(block.CodeBlock);
+                block.RegisterSyntaxNodeAction(codeBlockAnalyzer.AnalyzeObjectInitializers,
+                    SyntaxKind.ObjectInitializerExpression);
+                block.RegisterCodeBlockEndAction(codeBlockAnalyzer.CodeBlockEndAction);
+            });
         }
 
-        private void AnalyzeComments(SyntaxTreeAnalysisContext syntaxTreeContext)
+        private class CodeBlockAnalyzer
         {
-            SyntaxNode root = syntaxTreeContext.Tree.GetCompilationUnitRoot(syntaxTreeContext.CancellationToken);
+            private readonly ImmutableArray<TextSpan> _textSpansToAnalyze;
 
-            IOrderedEnumerable<SyntaxTrivia> singleLineComments =
-                root.DescendantTrivia()
-                    .Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                    .OrderBy(x => x.SpanStart);
-
-            var enabledTextSpans = new List<TextSpan>();
-            foreach (SyntaxTrivia comment in singleLineComments)
+            public CodeBlockAnalyzer(SyntaxNode codeBlock)
             {
-                string commentText = comment.ToString().Replace("//", "").Trim();
-                if (commentText.Equals(CommentPattern_Enable, StringComparison.OrdinalIgnoreCase))
-                {
-                    // Start of enable analyzer text span
-                    enabledTextSpans.Add(new TextSpan(comment.SpanStart, root.FullSpan.End - comment.SpanStart));
-                }
-                else if (commentText.Equals(CommentPattern_Disable, StringComparison.OrdinalIgnoreCase))
-                {
-                    // End of enable analyzer text span
-                    TextSpan? currentEnabledTextSpan = enabledTextSpans.Cast<TextSpan?>().LastOrDefault();
-                    if (currentEnabledTextSpan == null) continue;
-
-                    int spanLength = comment.Span.Start - currentEnabledTextSpan.Value.Start;
-
-                    // Update TextSpan in list
-                    enabledTextSpans.RemoveAt(enabledTextSpans.Count - 1);
-                    enabledTextSpans.Add(new TextSpan(currentEnabledTextSpan.Value.Start, spanLength));
-                }
+                _textSpansToAnalyze = GetTextSpansToAnalyze(codeBlock);
             }
 
-            _analyzerEnabledInTextSpans = enabledTextSpans.ToImmutableArray();
-        }
+            internal void AnalyzeObjectInitializers(SyntaxNodeAnalysisContext ctx)
+            {
+                InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax) ctx.Node;
 
-        private void AnalyzeObjectInitializers(SyntaxNodeAnalysisContext ctx)
-        {
-            InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax) ctx.Node;
+                // For now, only perform analysis when explicitly enabled by comment.
+                // TODO Support other means to enable, such as static configuration (analyze all/none by default), attributes on types and members
+                if (!IsAnalysisEnabledForSyntaxPosition(objectInitializer)) return;
 
-            // For now, only perform analysis when explicitly enabled by comment.
-            // TODO Support other means to enable, such as static configuration (analyze all/none by default), attributes on types and members
-            if (!IsAnalysisEnabledForSyntaxPosition(objectInitializer)) return;
+                // Should be direct parent of ObjectInitializerExpression
+                ObjectCreationExpressionSyntax objectCreation =
+                    objectInitializer.Parent as ObjectCreationExpressionSyntax;
 
-            // Should be direct parent of ObjectInitializerExpression
-            ObjectCreationExpressionSyntax objectCreation =
-                objectInitializer.Parent as ObjectCreationExpressionSyntax;
+                // Only handle initializers immediately following object creation,
+                // not sure what the scenario would be since we are only registered for
+                // object initializers, not things like list/collection initializers.
+                if (objectCreation == null)
+                    return;
 
-            // Only handle initializers immediately following object creation,
-            // not sure what the scenario would be since we are only registered for
-            // object initializers, not things like list/collection initializers.
-            if (objectCreation == null)
-                return;
+                INamedTypeSymbol objectCreationNamedType =
+                    (INamedTypeSymbol) ctx.SemanticModel.GetSymbolInfo(objectCreation.Type).Symbol;
+                if (objectCreationNamedType == null)
+                    return;
 
-            INamedTypeSymbol objectCreationNamedType =
-                (INamedTypeSymbol) ctx.SemanticModel.GetSymbolInfo(objectCreation.Type).Symbol;
-            if (objectCreationNamedType == null)
-                return;
+                ImmutableArray<ISymbol> members = objectCreationNamedType.GetMembers();
 
-            ImmutableArray<ISymbol> members = objectCreationNamedType.GetMembers();
-
-            List<string> assignedMemberNames = objectInitializer.ChildNodes()
-                .OfType<AssignmentExpressionSyntax>()
-                .Select(assignmentSyntax => ((IdentifierNameSyntax) assignmentSyntax.Left).Identifier.ValueText)
-                .ToList();
-
-
-            // TODO Check if member is assignable using Roslyn data flow analysis instead of these constraints,
-            // as that is the only way to properly determine if it is assignable or not in a context
-            IEnumerable<ISymbol> assignableProperties = members
-                .OfType<IPropertySymbol>()
-                .Where(m =>
-                    // Exclude indexer properties
-                        !m.IsIndexer &&
-                        // Exclude read-only getter properties
-                        !m.IsReadOnly &&
-                        // Simplification, only care about public members
-                        m.DeclaredAccessibility == Accessibility.Public);
-
-            IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
-                .Where(m =>
-                    // Exclude readonly fields
-                        !m.IsReadOnly &&
-                        // Exclude const fields
-                        !m.HasConstantValue &&
-                        // Exclude generated backing fields for properties
-                        !m.IsImplicitlyDeclared &&
-                        // Simplification, only care about public members
-                        m.DeclaredAccessibility == Accessibility.Public);
-
-            IEnumerable<string> assignableMemberNames = assignableProperties
-                .Concat(assignableFields)
-                .Select(x => x.Name);
-
-            ImmutableArray<string> ignoredPropertyNames = GetIgnoredPropertyNames(objectCreation);
-
-            List<string> unassignedMemberNames =
-                assignableMemberNames
-                    .Except(assignedMemberNames)
-                    .Except(ignoredPropertyNames)
+                List<string> assignedMemberNames = objectInitializer.ChildNodes()
+                    .OfType<AssignmentExpressionSyntax>()
+                    .Select(assignmentSyntax => ((IdentifierNameSyntax) assignmentSyntax.Left).Identifier.ValueText)
                     .ToList();
 
-            if (unassignedMemberNames.Any())
-            {
-                string unassignedMembersString = string.Join(", ", unassignedMemberNames);
 
-                ImmutableDictionary<string, string> properties =
-                    new Dictionary<string, string> {{Properties_UnassignedMemberNames, unassignedMembersString}}
-                        .ToImmutableDictionary();
+                // TODO Check if member is assignable using Roslyn data flow analysis instead of these constraints,
+                // as that is the only way to properly determine if it is assignable or not in a context
+                IEnumerable<ISymbol> assignableProperties = members
+                    .OfType<IPropertySymbol>()
+                    .Where(m =>
+                        // Exclude indexer properties
+                            !m.IsIndexer &&
+                            // Exclude read-only getter properties
+                            !m.IsReadOnly &&
+                            // Simplification, only care about public members
+                            m.DeclaredAccessibility == Accessibility.Public);
 
-                Diagnostic diagnostic = Diagnostic.Create(Rule,
-                    objectCreation.GetLocation(),
-                    //ctx.Node.GetLocation(),
-                    properties, objectCreationNamedType.Name, unassignedMembersString);
+                IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
+                    .Where(m =>
+                        // Exclude readonly fields
+                            !m.IsReadOnly &&
+                            // Exclude const fields
+                            !m.HasConstantValue &&
+                            // Exclude generated backing fields for properties
+                            !m.IsImplicitlyDeclared &&
+                            // Simplification, only care about public members
+                            m.DeclaredAccessibility == Accessibility.Public);
 
-                ctx.ReportDiagnostic(diagnostic);
+                IEnumerable<string> assignableMemberNames = assignableProperties
+                    .Concat(assignableFields)
+                    .Select(x => x.Name);
+
+                ImmutableArray<string> ignoredPropertyNames = GetIgnoredPropertyNames(objectCreation);
+
+                List<string> unassignedMemberNames =
+                    assignableMemberNames
+                        .Except(assignedMemberNames)
+                        .Except(ignoredPropertyNames)
+                        .ToList();
+
+                if (unassignedMemberNames.Any())
+                {
+                    string unassignedMembersString = string.Join(", ", unassignedMemberNames);
+
+                    ImmutableDictionary<string, string> properties =
+                        new Dictionary<string, string> {{Properties_UnassignedMemberNames, unassignedMembersString}}
+                            .ToImmutableDictionary();
+
+                    Diagnostic diagnostic = Diagnostic.Create(Rule,
+                        objectCreation.GetLocation(),
+                        //ctx.Node.GetLocation(),
+                        properties, objectCreationNamedType.Name, unassignedMembersString);
+
+                    ctx.ReportDiagnostic(diagnostic);
+                }
             }
-        }
 
-        private static ImmutableArray<string> GetIgnoredPropertyNames(ObjectCreationExpressionSyntax objectCreation)
-        {
-            ImmutableArray<string> propertiesByCommentedAssignment = GetIgnoredPropertyNamesFromCommentedAssignments(objectCreation);
-            return propertiesByCommentedAssignment;
-        }
+            public void CodeBlockEndAction(CodeBlockAnalysisContext ctx)
+            {
+            }
 
-        private static ImmutableArray<string> GetIgnoredPropertyNamesFromCommentedAssignments(ObjectCreationExpressionSyntax objectCreation)
-        {
-            // Case 1: Commented member assignments before one or more actual member assignments
-            // return new Foo {
-            //   // Prop1 = null,
-            //   // Prop2 = null,
-            //   Prop3 = 1
-            // };
-            SyntaxTriviaList memberAssignmentsLeadingTrivia =
-                new SyntaxTriviaList().AddRange(objectCreation.Initializer.Expressions
-                    .OfType<AssignmentExpressionSyntax>()
-                    .SelectMany(e => e.Left.GetLeadingTrivia()));
+            private static ImmutableArray<TextSpan> GetTextSpansToAnalyze(SyntaxNode codeBlock)
+            {
+                IOrderedEnumerable<SyntaxTrivia> singleLineCommentsInEntireFile =
+                    codeBlock.Ancestors().Single(a => a.IsKind(SyntaxKind.CompilationUnit))
+                    .DescendantTrivia()
+                        .Where(x => x.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                        .OrderBy(x => x.SpanStart);
 
-            // Case 2: Commented member assignments before closing brace
-            // return new Foo {
-            //   Prop3 = 1
-            //   // Prop1 = null,
-            //   // Prop2 = null,
-            // };
-            SyntaxTriviaList closingBraceLeadingTrivia = objectCreation.Initializer.CloseBraceToken.LeadingTrivia;
+                var enabledTextSpans = new List<TextSpan>();
+                foreach (SyntaxTrivia comment in singleLineCommentsInEntireFile)
+                {
+                    string commentText = comment.ToString().Replace("//", "").Trim();
+                    if (commentText.Equals(CommentPattern_Enable, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Start of enable analyzer text span
+                        enabledTextSpans.Add(new TextSpan(comment.SpanStart,
+                            codeBlock.FullSpan.End - comment.SpanStart + 1));
+                    }
+                    else if (commentText.Equals(CommentPattern_Disable, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // End of enable analyzer text span
+                        TextSpan? currentEnabledTextSpan = enabledTextSpans.Cast<TextSpan?>().LastOrDefault();
+                        if (currentEnabledTextSpan == null) continue;
 
-            return
-                memberAssignmentsLeadingTrivia
-                    .Concat(closingBraceLeadingTrivia)
-                    .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                    .Select(trivia => CommentedMemberAssignmentRegex.Match(trivia.ToString()))
-                    .Where(match => match.Success)
-                    .Select(match => match.Groups[1].Value)
-                    .ToImmutableArray();
-        }
+                        int spanLength = comment.Span.Start - currentEnabledTextSpan.Value.Start;
 
-        private bool IsAnalysisEnabledForSyntaxPosition(SyntaxNode initializer)
-        {
-            return _analyzerEnabledInTextSpans.Any(span => span.IntersectsWith(initializer.Span));
+                        // Update TextSpan in list
+                        enabledTextSpans.RemoveAt(enabledTextSpans.Count - 1);
+                        enabledTextSpans.Add(new TextSpan(currentEnabledTextSpan.Value.Start, spanLength));
+                    }
+                }
+
+                return enabledTextSpans.ToImmutableArray();
+            }
+
+            private static ImmutableArray<string> GetIgnoredPropertyNames(ObjectCreationExpressionSyntax objectCreation)
+            {
+                ImmutableArray<string> propertiesByCommentedAssignment =
+                    GetIgnoredPropertyNamesFromCommentedAssignments(objectCreation);
+                return propertiesByCommentedAssignment;
+            }
+
+            private static ImmutableArray<string> GetIgnoredPropertyNamesFromCommentedAssignments(
+                ObjectCreationExpressionSyntax objectCreation)
+            {
+                // Case 1: Commented member assignments before one or more actual member assignments
+                // return new Foo {
+                //   // Prop1 = null,
+                //   // Prop2 = null,
+                //   Prop3 = 1
+                // };
+                SyntaxTriviaList memberAssignmentsLeadingTrivia =
+                    new SyntaxTriviaList().AddRange(objectCreation.Initializer.Expressions
+                        .OfType<AssignmentExpressionSyntax>()
+                        .SelectMany(e => e.Left.GetLeadingTrivia()));
+
+                // Case 2: Commented member assignments before closing brace
+                // return new Foo {
+                //   Prop3 = 1
+                //   // Prop1 = null,
+                //   // Prop2 = null,
+                // };
+                SyntaxTriviaList closingBraceLeadingTrivia = objectCreation.Initializer.CloseBraceToken.LeadingTrivia;
+
+                return
+                    memberAssignmentsLeadingTrivia
+                        .Concat(closingBraceLeadingTrivia)
+                        .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                        .Select(trivia => CommentedMemberAssignmentRegex.Match(trivia.ToString()))
+                        .Where(match => match.Success)
+                        .Select(match => match.Groups[1].Value)
+                        .ToImmutableArray();
+            }
+
+            private bool IsAnalysisEnabledForSyntaxPosition(SyntaxNode initializer)
+            {
+                return _textSpansToAnalyze.Any(span => span.IntersectsWith(initializer.Span));
+            }
         }
     }
 }
