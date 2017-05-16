@@ -99,8 +99,8 @@ namespace SampleConsoleApp
 
             // Bar type has no diagnostic errors
             VerifyCSharpDiagnostic(testContent,
-                GetMissingAssignmentDiagnosticResult("Foo", 9, 23, "PropInt"),
-                GetMissingAssignmentDiagnosticResult("Baz", 20, 27, "PropInt")
+                GetMissingAssignmentDiagnosticResult("Foo", 9, 23, 0, "PropInt"),
+                GetMissingAssignmentDiagnosticResult("Baz", 20, 27, 0, "PropInt")
             );
         }
 
@@ -131,7 +131,7 @@ namespace SampleConsoleApp
 
             // Bar type has no diagnostic errors
             VerifyCSharpDiagnostic(testContent,
-                GetMissingAssignmentDiagnosticResult("Foo", 9, 23, "PropInt")
+                GetMissingAssignmentDiagnosticResult("Foo", 9, 23, 0, "PropInt")
             );
         }
 
@@ -184,8 +184,8 @@ namespace SampleConsoleApp
 
             // Bar type has no diagnostic errors
             VerifyCSharpDiagnostic(testContent,
-                GetMissingAssignmentDiagnosticResult("Foo", 17, 23, "PropInt"),
-                GetMissingAssignmentDiagnosticResult("Bar", 25, 23, "PropInt")
+                GetMissingAssignmentDiagnosticResult("Foo", 17, 23, 0, "PropInt"),
+                GetMissingAssignmentDiagnosticResult("Bar", 25, 23, 0, "PropInt")
             );
         }
 
@@ -227,7 +227,7 @@ namespace SampleConsoleApp
     }
 }
 ";
-            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 9, 23, "PropUnassigned");
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 9, 23, 0, "PropUnassigned");
             VerifyCSharpDiagnostic(testContent, expected);
         }
 
@@ -562,6 +562,58 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
+        [TestMethod]
+        public void EnableComment_DoesNotAffectOtherFiles()
+        {
+            var types = @"
+namespace TestCode
+{
+    internal class Foo
+    {
+        public int FooPropInt { get; set; }
+    }
+
+    internal class Bar
+    {
+        public int BarPropInt { get; set; }
+    }
+";
+
+            var fooInitializer = @"
+namespace TestCode
+{
+    internal static class FooInitializer
+    {
+        private static void Initialize()
+        {
+            // ObjectInitializer_AssignAll enable
+            var foo = new Foo
+            {
+            };
+        }
+    }
+}
+";
+            var barInitializer = @"
+namespace TestCode
+{
+    internal static class BarInitializer
+    {
+        private static void Initialize()
+        {
+            var bar = new Bar
+            {
+            };
+        }
+    }
+}
+";
+            string[] fileSources = {types, fooInitializer, barInitializer};
+
+            DiagnosticResult expectedDiagnostics = GetMissingAssignmentDiagnosticResult("Foo", 9, 23, 1, "FooPropInt");
+            VerifyCSharpDiagnostic(fileSources, expectedDiagnostics);
+        }
+
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new ObjectInitializer_AssignAllAnalyzer();
@@ -569,6 +621,7 @@ namespace SampleConsoleApp
 
         private static DiagnosticResult GetMissingAssignmentDiagnosticResult(string createdObjectTypeName, int line,
             int column,
+            int fileIndex,
             params string[] unassignedMemberNames)
         {
             string unassignedMembersString = string.Join(", ", unassignedMemberNames);
@@ -581,7 +634,7 @@ namespace SampleConsoleApp
                 Locations =
                     new[]
                     {
-                        new DiagnosticResultLocation("Test0.cs", line, column)
+                        new DiagnosticResultLocation($"Test{fileIndex}.cs", line, column)
                     }
             };
             return expected;
@@ -592,7 +645,7 @@ namespace SampleConsoleApp
             // Most code snippets in the tests are identical up to the object initializer
             const int line = 9;
             const int column = 23;
-            return GetMissingAssignmentDiagnosticResult("Foo", line, column, unassignedMemberNames);
+            return GetMissingAssignmentDiagnosticResult("Foo", line, column, 0, unassignedMemberNames);
         }
     }
 }
