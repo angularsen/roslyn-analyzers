@@ -36,6 +36,9 @@
   <ItemGroup>
     <Compile Include="CodeFixProvider.cs" />
     <Compile Include="DiagnosticAnalyzer.cs" />
+    <Compile Include="ObjectInitializerAnalyzer.cs" />
+    <Compile Include="RegionsToAnalyze.cs" />
+    <Compile Include="RegionsToAnalyzeProvider.cs" />
     <Compile Include="MySyntaxNodeEx.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">
