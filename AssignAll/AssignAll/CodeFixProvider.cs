@@ -33,7 +33,7 @@ namespace AssignAll
             SyntaxNode root =
                 await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             Diagnostic diagnostic = context.Diagnostics.FirstOrDefault();
-            if (diagnostic == default)
+            if (diagnostic == null)
                 return;
             TextSpan diagnosticSpan = diagnostic.Location.SourceSpan;
 
