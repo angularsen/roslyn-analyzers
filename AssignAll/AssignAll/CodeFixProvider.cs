@@ -32,7 +32,9 @@ namespace AssignAll
         {
             SyntaxNode root =
                 await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            Diagnostic diagnostic = context.Diagnostics.First();
+            Diagnostic diagnostic = context.Diagnostics.FirstOrDefault();
+            if (diagnostic == default)
+                return;
             TextSpan diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Read unassigned member names, passed on from diagnostic
