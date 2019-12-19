@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/1h7oidijn88wvgbd/branch/master?svg=true)](https://ci.appveyor.com/project/angularsen/roslyn-analyzers/branch/master)
+
 # roslyn-analyzers
 Collection of useful Roslyn analyzers and code fixes.
 
