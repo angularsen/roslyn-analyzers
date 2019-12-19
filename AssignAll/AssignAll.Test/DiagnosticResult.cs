@@ -31,18 +31,18 @@ namespace AssignAll.Test
     /// </summary>
     public struct DiagnosticResult
     {
-        private DiagnosticResultLocation[] locations;
+        private DiagnosticResultLocation[] _locations;
 
         public DiagnosticResultLocation[] Locations
         {
             get
             {
-                if (locations == null)
-                    locations = new DiagnosticResultLocation[] {};
-                return locations;
+                if (_locations == null)
+                    _locations = new DiagnosticResultLocation[] {};
+                return _locations;
             }
 
-            set { locations = value; }
+            set { _locations = value; }
         }
 
         public DiagnosticSeverity Severity { get; set; }

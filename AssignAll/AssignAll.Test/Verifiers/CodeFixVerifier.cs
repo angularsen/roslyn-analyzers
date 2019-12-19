@@ -62,6 +62,7 @@ namespace AssignAll.Test.Verifiers
         ///     A bool controlling whether or not the test will fail if the CodeFix
         ///     introduces other warnings after being applied
         /// </param>
+        /// <param name="verifyDiagnosticsRemovedByCodeFix">Whether to verify diagnostics are removed by code fix.</param>
         protected void VerifyBasicFix(string oldSource, string newSource, int? codeFixIndex = null,
             bool allowNewCompilerDiagnostics = false, bool verifyDiagnosticsRemovedByCodeFix = true)
         {

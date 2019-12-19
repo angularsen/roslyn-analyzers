@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -165,11 +164,11 @@ namespace AssignAll.Test.Verifiers
         /// <param name="actualResults">The Diagnostics found by the compiler after running the analyzer on the source code</param>
         /// <param name="analyzer">The analyzer that was being run on the sources</param>
         /// <param name="expectedResults">Diagnostic Results that should have appeared in the code</param>
-        private static void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer,
+        private static void VerifyDiagnosticResults(Diagnostic[] actualResults, DiagnosticAnalyzer analyzer,
             params DiagnosticResult[] expectedResults)
         {
-            int expectedCount = expectedResults.Count();
-            int actualCount = actualResults.Count();
+            int expectedCount = expectedResults.Length;
+            int actualCount = actualResults.Length;
 
             if (expectedCount != actualCount)
             {

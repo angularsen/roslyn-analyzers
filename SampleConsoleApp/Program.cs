@@ -1,4 +1,5 @@
-﻿namespace SampleConsoleApp
+﻿// ReSharper disable All
+namespace SampleConsoleApp
 {
     internal static class Program
     {
