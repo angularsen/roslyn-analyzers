@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -155,7 +156,8 @@ New document:
             //after applying all of the code fixes, compare the resulting string to the inputted one
             string actual = CodeFixVerifier.GetStringFromDocument(document);
             LogLine($"Actual bytes: [{GetHexValues(actual)}]");
-            LogLine($"Expected bytes: [{GetHexValues(actual)}]");
+            LogLine($"Expected bytes: [{GetHexValues(newSource)}]");
+            actual.Should().BeEquivalentTo(newSource);
             Assert.AreEqual(newSource, actual);
         }
 
