@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
 namespace AssignAll
@@ -77,12 +78,9 @@ namespace AssignAll
                         memberName => SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
                             SyntaxFactory.IdentifierName(memberName), SyntaxFactory.IdentifierName(string.Empty))));
 
-            InitializerExpressionSyntax newObjectInitializer = objectInitializer.WithExpressions(
-                newExpressions);
-
-            // Reformat fails due to the codefix code not compiling..
-            //            newObjectInitializer =
-            //                (InitializerExpressionSyntax) Formatter.Format(newObjectInitializer, MSBuildWorkspace.Create());
+            InitializerExpressionSyntax newObjectInitializer = objectInitializer
+                .WithExpressions(newExpressions)
+                .WithAdditionalAnnotations(Formatter.Annotation); // Reformat the change
 
             SyntaxNode newRoot = oldRoot.ReplaceNode(objectInitializer, newObjectInitializer);
             return document.WithSyntaxRoot(newRoot);
