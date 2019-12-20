@@ -154,8 +154,8 @@ New document:
 
             //after applying all of the code fixes, compare the resulting string to the inputted one
             string actual = CodeFixVerifier.GetStringFromDocument(document);
-            Debug.WriteLine($"Actual bytes: [{GetHexValues(actual)}]");
-            Debug.WriteLine($"Expected bytes: [{GetHexValues(actual)}]");
+            LogLine($"Actual bytes: [{GetHexValues(actual)}]");
+            LogLine($"Expected bytes: [{GetHexValues(actual)}]");
             Assert.AreEqual(newSource, actual);
         }
 
@@ -163,6 +163,17 @@ New document:
         {
             var bytes = Encoding.UTF8.GetBytes(actual);
             return $"Bytes ({bytes.Length}): {string.Join(",", bytes.Select(ch => ch.ToString("X")))}";
+        }
+
+        private void LogLine(string line)
+        {
+            // Debug.WriteLine(line);
+            if (!Trace.Listeners.Cast<TraceListener>().Any(l => l is ConsoleTraceListener))
+            {
+                Trace.Listeners.Add(new ConsoleTraceListener());
+            }
+
+            Trace.WriteLine(line);
         }
     }
 }
