@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -152,7 +154,15 @@ New document:
 
             //after applying all of the code fixes, compare the resulting string to the inputted one
             string actual = CodeFixVerifier.GetStringFromDocument(document);
+            Debug.WriteLine($"Actual bytes: [{GetHexValues(actual)}]");
+            Debug.WriteLine($"Expected bytes: [{GetHexValues(actual)}]");
             Assert.AreEqual(newSource, actual);
+        }
+
+        private static string GetHexValues(string actual)
+        {
+            var bytes = Encoding.UTF8.GetBytes(actual);
+            return $"Bytes ({bytes.Length}): {string.Join(",", bytes.Select(ch => ch.ToString("X")))}";
         }
     }
 }
