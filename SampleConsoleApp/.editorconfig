@@ -1,0 +1,10 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file to keep sample solution separate from the other code.
+root = true
+
+# Windows-style newlines with a newline ending every file
+# Roslyn code fixes will honor this.
+[*]
+end_of_line = crlf
+insert_final_newline = true
