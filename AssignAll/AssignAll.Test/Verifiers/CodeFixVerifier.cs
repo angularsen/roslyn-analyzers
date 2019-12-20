@@ -154,11 +154,13 @@ New document:
             }
 
             //after applying all of the code fixes, compare the resulting string to the inputted one
-            string actual = CodeFixVerifier.GetStringFromDocument(document);
+            string actual = GetStringFromDocument(document);
+            
+            // Uncomment me to debug subtle whitespace issues like LF vs CRLF
             LogLine($"Actual bytes: [{GetHexValues(actual)}]");
             LogLine($"Expected bytes: [{GetHexValues(newSource)}]");
+
             actual.Should().BeEquivalentTo(newSource);
-            Assert.AreEqual(newSource, actual);
         }
 
         private static string GetHexValues(string actual)
@@ -167,9 +169,8 @@ New document:
             return $"Bytes ({bytes.Length}): {string.Join(",", bytes.Select(ch => ch.ToString("X")))}";
         }
 
-        private void LogLine(string line)
+        private static void LogLine(string line)
         {
-            // Debug.WriteLine(line);
             if (!Trace.Listeners.Cast<TraceListener>().Any(l => l is ConsoleTraceListener))
             {
                 Trace.Listeners.Add(new ConsoleTraceListener());
