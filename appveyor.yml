@@ -13,11 +13,9 @@ before_build:
 - ps: nuget restore RoslynAnalyzers.sln
 build:
   project: RoslynAnalyzers.sln
-  publish_nuget: false
-  publish_nuget_symbols: false
-  use_snupkg_format: true
   parallel: true
   verbosity: minimal
+# Nuget is automatically built when building AssignAll project
 artifacts:
 - path: 'AssignAll\AssignAll\bin\Release\*.nupkg'
 deploy:
