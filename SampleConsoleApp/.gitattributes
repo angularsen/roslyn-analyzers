@@ -2,4 +2,4 @@
 # Sample code needs to normalize to Windows line endings in order to have consistent results regardless of git config.
 # This fixes an issue where AppVeyor uses 'input' git config, and git typically checks in code with LF line endings.
 # The editorconfig is configured with CRLF so we must check out the files with the same EOL.
-* text=crlf
+* text eol=crlf
