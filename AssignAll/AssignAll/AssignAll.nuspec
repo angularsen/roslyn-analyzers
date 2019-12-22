@@ -6,13 +6,12 @@
     <title>AssignAll</title>
     <authors>Andreas Gullberg Larsen</authors>
     <owners>Andreas Gullberg Larsen</owners>
-    <licenseUrl>https://github.com/anjdreas/roslyn-analyzers/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/anjdreas/roslyn-analyzers#assignall</projectUrl>
-<!--    <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
+    <licenseUrl>MIT</licenseUrl>
+    <projectUrl>https://github.com/angularsen/roslyn-analyzers#assignall</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Diagnostic and code fix to ensure all members are assigned in an object initializer. Enable with comment: // AssignAll enable</description>
 <!--    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>-->
-    <copyright>Copyright (c) 2017 Andreas Gullberg Larsen, anjdreas@gmail.com.</copyright>
+    <copyright>Copyright (c) 2017 Andreas Gullberg Larsen, andreas.larsen84@gmail.com.</copyright>
     <tags>objectinitializer, analyzers, roslyn, codeanalysis, diagnostics</tags>
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="System" targetFramework="" />

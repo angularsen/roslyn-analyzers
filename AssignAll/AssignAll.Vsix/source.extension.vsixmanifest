@@ -4,9 +4,9 @@
                  xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="AssignAll..a924a6af-27a8-431e-9757-61d26073a85c" Version="1.0" Language="en-US"
-              Publisher="Andreas Gullberg Larsen (anjdreas@gmail.com)" />
+              Publisher="Andreas Gullberg Larsen (andreas.larsen84@gmail.com)" />
     <DisplayName>AssignAll</DisplayName>
-    <Description xml:space="preserve">Diagnostic and code fix to ensure all members are assigned in an object initializer. Enable with comment: // AssignAll enable</Description>
+    <Description xml:space="preserve">Ensure all members are assigned in an object initializer. Enable with comment: // AssignAll enable</Description>
   </Metadata>
   <Installation>
     <InstallationTarget Version="[14.0,]" Id="Microsoft.VisualStudio.Pro" />

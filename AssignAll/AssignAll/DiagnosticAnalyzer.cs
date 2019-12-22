@@ -34,7 +34,7 @@ namespace AssignAll
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title,
             MessageFormat,
             Category, DiagnosticSeverity.Error, true, Description,
-            "https://github.com/anjdreas/roslyn-analyzers#objectinitializer_assignall");
+            "https://github.com/angularsen/roslyn-analyzers#assignall");
 
         /// <summary>
         ///     Regex that identifies:
