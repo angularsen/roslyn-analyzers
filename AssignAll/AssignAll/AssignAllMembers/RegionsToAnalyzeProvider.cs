@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using AssignAll;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
-namespace AssignAll
+namespace AssignAll.AssignAllMembers
 {
     internal static class RegionsToAnalyzeProvider
     {
@@ -22,7 +21,7 @@ namespace AssignAll
             var enabledTextSpans = new List<TextSpan>();
             foreach (SyntaxTrivia comment in singleLineCommentsInEntireFile)
             {
-                string commentText = comment.ToString().Replace("//", "").Trim();
+                var commentText = comment.ToString().Replace("//", "").Trim();
                 if (commentText.Equals(AssignAllAnalyzer.CommentPattern_Enable,
                     StringComparison.OrdinalIgnoreCase))
                 {
@@ -37,7 +36,7 @@ namespace AssignAll
                     TextSpan? currentEnabledTextSpan = enabledTextSpans.Cast<TextSpan?>().LastOrDefault();
                     if (currentEnabledTextSpan == null) continue;
 
-                    int spanLength = comment.Span.Start - currentEnabledTextSpan.Value.Start;
+                    var spanLength = comment.Span.Start - currentEnabledTextSpan.Value.Start;
 
                     // Update TextSpan in list
                     enabledTextSpans.RemoveAt(enabledTextSpans.Count - 1);

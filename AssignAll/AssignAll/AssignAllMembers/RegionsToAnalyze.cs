@@ -2,7 +2,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace AssignAll
+namespace AssignAll.AssignAllMembers
 {
     internal struct RegionsToAnalyze
     {

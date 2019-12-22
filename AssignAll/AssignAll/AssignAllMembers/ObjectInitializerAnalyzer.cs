@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using AssignAll;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace AssignAll
+namespace AssignAll.AssignAllMembers
 {
     internal class ObjectInitializerAnalyzer
     {
@@ -20,7 +19,7 @@ namespace AssignAll
 
         internal void AnalyzeObjectInitializers(SyntaxNodeAnalysisContext ctx)
         {
-            InitializerExpressionSyntax objectInitializer = (InitializerExpressionSyntax) ctx.Node;
+            var objectInitializer = (InitializerExpressionSyntax) ctx.Node;
 
             // For now, only perform analysis when explicitly enabled by comment.
             // TODO Support other means to enable, such as static configuration (analyze all/none by default), attributes on types and members
@@ -32,7 +31,7 @@ namespace AssignAll
             if (!(objectInitializer.Parent is ObjectCreationExpressionSyntax objectCreation))
                 return;
 
-            INamedTypeSymbol objectCreationNamedType =
+            var objectCreationNamedType =
                 (INamedTypeSymbol) ctx.SemanticModel.GetSymbolInfo(objectCreation.Type).Symbol;
             if (objectCreationNamedType == null)
                 return;
@@ -51,22 +50,22 @@ namespace AssignAll
                 .OfType<IPropertySymbol>()
                 .Where(m =>
                     // Exclude indexer properties
-                        !m.IsIndexer &&
-                        // Exclude read-only getter properties
-                        !m.IsReadOnly &&
-                        // Simplification, only care about public members
-                        m.DeclaredAccessibility == Accessibility.Public);
+                    !m.IsIndexer &&
+                    // Exclude read-only getter properties
+                    !m.IsReadOnly &&
+                    // Simplification, only care about public members
+                    m.DeclaredAccessibility == Accessibility.Public);
 
             IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
                 .Where(m =>
                     // Exclude readonly fields
-                        !m.IsReadOnly &&
-                        // Exclude const fields
-                        !m.HasConstantValue &&
-                        // Exclude generated backing fields for properties
-                        !m.IsImplicitlyDeclared &&
-                        // Simplification, only care about public members
-                        m.DeclaredAccessibility == Accessibility.Public);
+                    !m.IsReadOnly &&
+                    // Exclude const fields
+                    !m.HasConstantValue &&
+                    // Exclude generated backing fields for properties
+                    !m.IsImplicitlyDeclared &&
+                    // Simplification, only care about public members
+                    m.DeclaredAccessibility == Accessibility.Public);
 
             IEnumerable<string> assignableMemberNames = assignableProperties
                 .Concat(assignableFields)
@@ -82,7 +81,7 @@ namespace AssignAll
 
             if (unassignedMemberNames.Any())
             {
-                string unassignedMembersString = string.Join(", ", unassignedMemberNames);
+                var unassignedMembersString = string.Join(", ", unassignedMemberNames);
 
                 ImmutableDictionary<string, string> properties =
                     new Dictionary<string, string>
@@ -94,7 +93,7 @@ namespace AssignAll
                         }
                         .ToImmutableDictionary();
 
-                Diagnostic diagnostic = Diagnostic.Create(AssignAllAnalyzer.Rule,
+                var diagnostic = Diagnostic.Create(AssignAllAnalyzer.Rule,
                     objectCreation.GetLocation(),
                     properties, objectCreationNamedType.Name, unassignedMembersString);
 
