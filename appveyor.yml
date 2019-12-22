@@ -11,11 +11,13 @@ before_build:
 - ps: nuget restore RoslynAnalyzers.sln
 build:
   project: RoslynAnalyzers.sln
-  publish_nuget: true
-  publish_nuget_symbols: true
+  publish_nuget: false
+  publish_nuget_symbols: false
   use_snupkg_format: true
   parallel: true
   verbosity: minimal
+artifacts:
+- path: '*.nupkg' # find NuGet package produced by building AssignAll project
 deploy:
 - provider: NuGet
   api_key:
