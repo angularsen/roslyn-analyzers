@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using AssignAll;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace AssignAll
@@ -39,7 +34,7 @@ namespace AssignAll
         private static readonly LocalizableString Description = new LocalizableResourceString(nameof(Resources.AnalyzerDescription), Resources.ResourceManager, typeof(Resources));
         private const string Category = "Usage";
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
 
         private IImmutableDictionary<SyntaxReference, RegionsToAnalyze> _rootNodeToAnalyzerTextSpans =
             ImmutableDictionary<SyntaxReference, RegionsToAnalyze>.Empty;

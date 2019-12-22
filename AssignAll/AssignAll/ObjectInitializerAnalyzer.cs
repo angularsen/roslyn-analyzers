@@ -24,7 +24,7 @@ namespace AssignAll
 
             // For now, only perform analysis when explicitly enabled by comment.
             // TODO Support other means to enable, such as static configuration (analyze all/none by default), attributes on types and members
-            if (!_regionsToAnalyze.TextSpans.Any(span => span.IntersectsWith(objectInitializer.Span))) return;
+            if (!_regionsToAnalyze.TextSpans.Any(enabledTextSpan => enabledTextSpan.Contains(objectInitializer.SpanStart))) return;
 
             // Only handle initializers immediately following object creation,
             // not sure what the scenario would be since we are only registered for

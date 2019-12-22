@@ -1,13 +1,12 @@
 ﻿using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestHelper;
+using Xunit;
 
 namespace AssignAll.Test
 {
-    [TestClass]
     public class CodeFixTests : CodeFixVerifier
     {
-        [TestMethod]
+        [Fact]
         public void EmptyInitializer_PopulatesAssignmentsForAllPublicMembers()
         {
             var testContent = @"
@@ -62,7 +61,7 @@ namespace SampleConsoleApp
             VerifyCSharpFix(testContent, fixedContent, allowNewCompilerDiagnostics: true);
         }
 
-        [TestMethod]
+        [Fact]
         public void PopulatesMissingAssignmentsAfterExistingAssignments()
         {
             var testContent = @"
