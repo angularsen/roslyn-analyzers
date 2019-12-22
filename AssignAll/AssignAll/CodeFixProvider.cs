@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace AssignAll
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(AssignAllCodeFixProvider)), Shared]
-    public class AssignAllCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CodeFixProvider)), Shared]
+    public class CodeFixProvider : Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider
     {
         private const string Title = "Assign all members";
         private const string CodeFixUniqueId = "Assign all members";
