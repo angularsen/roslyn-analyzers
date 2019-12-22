@@ -1,40 +1,29 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using AssignAll;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace AssignAll
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class AssignAll_Analyzer : DiagnosticAnalyzer
+    public class AssignAllAnalyzer : DiagnosticAnalyzer
     {
-        internal const string Properties_UnassignedMemberNames = "UnassignedMemberNames";
         internal const string DiagnosticId = "AssignAll";
+
+        internal const string Properties_UnassignedMemberNames = "UnassignedMemberNames";
 
         internal const string CommentPattern_Disable = "AssignAll disable";
         internal const string CommentPattern_Enable = "AssignAll enable";
-        private const string Category = "Usage";
 
         private const int MaxRootNodeCacheCount = 10;
-
-        private static readonly LocalizableString Title = new LocalizableResourceString(
-            nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));
-
-        private static readonly LocalizableString MessageFormat =
-            new LocalizableResourceString(nameof(Resources.AnalyzerMessageFormat), Resources.ResourceManager,
-                typeof(Resources));
-
-        private static readonly LocalizableString Description =
-            new LocalizableResourceString(nameof(Resources.AnalyzerDescription), Resources.ResourceManager,
-                typeof(Resources));
-
-        internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title,
-            MessageFormat,
-            Category, DiagnosticSeverity.Error, true, Description,
-            "https://github.com/angularsen/roslyn-analyzers#assignall");
 
         /// <summary>
         ///     Regex that identifies:
@@ -42,22 +31,35 @@ namespace AssignAll
         /// </summary>
         internal static readonly Regex CommentedMemberAssignmentRegex = new Regex(@"\/\/\s*(\w+)\s*=");
 
+
+        // You can change these strings in the Resources.resx file. If you do not want your analyzer to be localize-able, you can use regular strings for Title and MessageFormat.
+        // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Localizing%20Analyzers.md for more on localization
+        private static readonly LocalizableString Title = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));
+        private static readonly LocalizableString MessageFormat = new LocalizableResourceString(nameof(Resources.AnalyzerMessageFormat), Resources.ResourceManager, typeof(Resources));
+        private static readonly LocalizableString Description = new LocalizableResourceString(nameof(Resources.AnalyzerDescription), Resources.ResourceManager, typeof(Resources));
+        private const string Category = "Usage";
+
+        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+
         private IImmutableDictionary<SyntaxReference, RegionsToAnalyze> _rootNodeToAnalyzerTextSpans =
             ImmutableDictionary<SyntaxReference, RegionsToAnalyze>.Empty;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
-            ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext ctx)
         {
+            // TODO: Consider registering other actions that act on syntax instead of or in addition to symbols
+            // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
+            // ctx.EnableConcurrentExecution(); We have some shared state I'm not sure survives concurrency, hold off on this
+            ctx.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None); // Don't touch code classified as generated
+
             ctx.RegisterCodeBlockStartAction<SyntaxKind>(block =>
             {
                 RegionsToAnalyze regionsToAnalyze = GetOrSetCachedRegionsToAnalyzeInFile(block.CodeBlock);
 
                 ObjectInitializerAnalyzer objectInitializerAnalyzer = new ObjectInitializerAnalyzer(regionsToAnalyze);
-                block.RegisterSyntaxNodeAction(objectInitializerAnalyzer.AnalyzeObjectInitializers,
-                    SyntaxKind.ObjectInitializerExpression);
-                block.RegisterCodeBlockEndAction(objectInitializerAnalyzer.CodeBlockEndAction);
+                block.RegisterSyntaxNodeAction(objectInitializerAnalyzer.AnalyzeObjectInitializers, SyntaxKind.ObjectInitializerExpression);
+                // block.RegisterCodeBlockEndAction(objectInitializerAnalyzer.CodeBlockEndAction);
             });
         }
 

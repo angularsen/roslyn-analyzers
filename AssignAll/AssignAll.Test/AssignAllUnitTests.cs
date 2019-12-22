@@ -4,9 +4,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using TestHelper;
-using AssignAll2;
+using AssignAll;
 
-namespace AssignAll2.Test
+namespace AssignAll.Test
 {
     [TestClass]
     public class UnitTest : CodeFixVerifier
@@ -41,7 +41,7 @@ namespace AssignAll2.Test
     }";
             var expected = new DiagnosticResult
             {
-                Id = "AssignAll2",
+                Id = "AssignAll",
                 Message = String.Format("Type name '{0}' contains lowercase letters", "TypeName"),
                 Severity = DiagnosticSeverity.Warning,
                 Locations =
@@ -71,12 +71,12 @@ namespace AssignAll2.Test
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new AssignAll2CodeFixProvider();
+            return new AssignAllCodeFixProvider();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new AssignAll2Analyzer();
+            return new AssignAllAnalyzer();
         }
     }
 }

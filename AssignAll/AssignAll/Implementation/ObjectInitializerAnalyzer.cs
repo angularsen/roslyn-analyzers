@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using AssignAll2;
+using AssignAll;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -88,13 +88,13 @@ namespace AssignAll
                     new Dictionary<string, string>
                         {
                             {
-                                AssignAll2Analyzer.Properties_UnassignedMemberNames,
+                                AssignAllAnalyzer.Properties_UnassignedMemberNames,
                                 unassignedMembersString
                             }
                         }
                         .ToImmutableDictionary();
 
-                Diagnostic diagnostic = Diagnostic.Create(AssignAll2Analyzer.Rule,
+                Diagnostic diagnostic = Diagnostic.Create(AssignAllAnalyzer.Rule,
                     objectCreation.GetLocation(),
                     properties, objectCreationNamedType.Name, unassignedMembersString);
 
@@ -139,7 +139,7 @@ namespace AssignAll
                 memberAssignmentsLeadingTrivia
                     .Concat(closingBraceLeadingTrivia)
                     .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                    .Select(trivia => AssignAll2Analyzer.CommentedMemberAssignmentRegex
+                    .Select(trivia => AssignAllAnalyzer.CommentedMemberAssignmentRegex
                         .Match(trivia.ToString()))
                     .Where(match => match.Success)
                     .Select(match => match.Groups[1].Value)

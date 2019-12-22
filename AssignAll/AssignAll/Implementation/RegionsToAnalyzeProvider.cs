@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using AssignAll;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
@@ -22,14 +23,14 @@ namespace AssignAll
             foreach (SyntaxTrivia comment in singleLineCommentsInEntireFile)
             {
                 string commentText = comment.ToString().Replace("//", "").Trim();
-                if (commentText.Equals(AssignAll_Analyzer.CommentPattern_Enable,
+                if (commentText.Equals(AssignAllAnalyzer.CommentPattern_Enable,
                     StringComparison.OrdinalIgnoreCase))
                 {
                     // Start of enable analyzer text span
                     enabledTextSpans.Add(new TextSpan(comment.SpanStart,
                         rootNode.FullSpan.End - comment.SpanStart + 1));
                 }
-                else if (commentText.Equals(AssignAll_Analyzer.CommentPattern_Disable,
+                else if (commentText.Equals(AssignAllAnalyzer.CommentPattern_Disable,
                     StringComparison.OrdinalIgnoreCase))
                 {
                     // End of enable analyzer text span
