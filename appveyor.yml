@@ -17,7 +17,7 @@ build:
   parallel: true
   verbosity: minimal
 artifacts:
-- path: '*.nupkg' # find NuGet package produced by building AssignAll project
+- path: 'AssignAll\AssignAll\bin\Release\*.nupkg'
 deploy:
 - provider: NuGet
   api_key:
