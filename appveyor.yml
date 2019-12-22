@@ -15,7 +15,7 @@ build:
   project: RoslynAnalyzers.sln
   parallel: true
   verbosity: minimal
-# Nuget is automatically built when building AssignAll project
+# Nuget is automatically built when building AssignAll project.
 artifacts:
 - path: 'AssignAll\AssignAll\bin\Release\*.nupkg'
 deploy:

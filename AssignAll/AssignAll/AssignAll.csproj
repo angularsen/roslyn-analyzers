@@ -15,11 +15,19 @@
     <RepositoryUrl>https://github.com/angularsen/roslyn-analyzers</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Ensure all members are assigned in an object initializer. Enable with comment above it: // AssignAll enable</Description>
-    <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
+    <PackageReleaseNotes>Publish symbols package and enable Source Link.</PackageReleaseNotes>
     <Copyright>Copyright (c) 2017 Andreas Gullberg Larsen, andreas.larsen84@gmail.com.</Copyright>
     <PackageTags>assign, members, initializer, objectinitializer, analyzers, roslyn, diagnostics</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+
+    <!-- Include Source Link repository URL in the built .nupkg -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
+
+  <!-- Enable Source Link for GitHub repo -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.9.8" PrivateAssets="all" />
