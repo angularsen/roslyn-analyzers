@@ -6,7 +6,7 @@
     <title>AssignAll</title>
     <authors>Andreas Gullberg Larsen</authors>
     <owners>Andreas Gullberg Larsen</owners>
-    <licenseUrl>MIT</licenseUrl>
+    <license>MIT</license>
     <projectUrl>https://github.com/angularsen/roslyn-analyzers#assignall</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Diagnostic and code fix to ensure all members are assigned in an object initializer. Enable with comment: // AssignAll enable</description>
