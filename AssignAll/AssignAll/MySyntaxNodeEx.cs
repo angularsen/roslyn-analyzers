@@ -16,11 +16,10 @@ namespace AssignAll
         /// <returns>Parent or null if not found or not matching type or kind.</returns>
         public static TParent Parent<TParent>(this SyntaxNode node, SyntaxKind? kind = null) where TParent : SyntaxNode
         {
-            TParent parent = node.Parent as TParent;
-            if (parent == null) return default(TParent);
+            if (!(node.Parent is TParent parent)) return default;
             if (kind == null) return parent;
 
-            return parent.Kind() != kind ? default(TParent) : parent;
+            return parent.Kind() != kind ? default : parent;
         }
 
         /// <summary>
@@ -32,9 +31,9 @@ namespace AssignAll
         public static SyntaxNode Parent(this SyntaxNode node, SyntaxKind kind)
         {
             SyntaxNode parent = node.Parent;
-            if (parent == null) return default(SyntaxNode);
+            if (parent == null) return null;
 
-            return parent.Kind() != kind ? default(SyntaxNode) : parent;
+            return parent.Kind() != kind ? default : parent;
         }
     }
 }

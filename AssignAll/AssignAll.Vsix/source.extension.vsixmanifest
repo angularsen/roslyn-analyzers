@@ -1,29 +1,22 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-
-<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"
-                 xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="AssignAll..a924a6af-27a8-431e-9757-61d26073a85c" Version="1.0" Language="en-US"
-              Publisher="Andreas Gullberg Larsen (andreas.larsen84@gmail.com)" />
+    <Identity Id="AssignAll.74bc95d8-2e09-485a-a68e-b4f03bece09f" Version="1.0" Language="en-US" Publisher="Andreas"/>
     <DisplayName>AssignAll</DisplayName>
-    <Description xml:space="preserve">Ensure all members are assigned in an object initializer. Enable with comment: // AssignAll enable</Description>
+    <Description xml:space="preserve">This is a sample diagnostic extension for the .NET Compiler Platform ("Roslyn").</Description>
   </Metadata>
   <Installation>
-    <InstallationTarget Version="[14.0,]" Id="Microsoft.VisualStudio.Pro" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,)" />
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
   </Dependencies>
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="AssignAll"
-           Path="|AssignAll|" />
-    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="AssignAll"
-           Path="|AssignAll|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="AssignAll" Path="|AssignAll|"/>
+    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="AssignAll" Path="|AssignAll|"/>
   </Assets>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)"
-                  DisplayName="Visual Studio core editor" />
-    <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[15.0,16.0)"
-                  DisplayName="Roslyn Language Services" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[15.0,16.0)" DisplayName="Roslyn Language Services" />
   </Prerequisites>
 </PackageManifest>

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using AssignAll;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,16 +24,12 @@ namespace AssignAll
 
             // For now, only perform analysis when explicitly enabled by comment.
             // TODO Support other means to enable, such as static configuration (analyze all/none by default), attributes on types and members
-            if (!_regionsToAnalyze.TextSpans.Any(span => span.IntersectsWith(objectInitializer.Span))) return;
-
-            // Should be direct parent of ObjectInitializerExpression
-            ObjectCreationExpressionSyntax objectCreation =
-                objectInitializer.Parent as ObjectCreationExpressionSyntax;
+            if (!_regionsToAnalyze.TextSpans.Any(enabledTextSpan => enabledTextSpan.Contains(objectInitializer.SpanStart))) return;
 
             // Only handle initializers immediately following object creation,
             // not sure what the scenario would be since we are only registered for
             // object initializers, not things like list/collection initializers.
-            if (objectCreation == null)
+            if (!(objectInitializer.Parent is ObjectCreationExpressionSyntax objectCreation))
                 return;
 
             INamedTypeSymbol objectCreationNamedType =
@@ -91,24 +88,23 @@ namespace AssignAll
                     new Dictionary<string, string>
                         {
                             {
-                                AssignAll_Analyzer.Properties_UnassignedMemberNames,
+                                AssignAllAnalyzer.Properties_UnassignedMemberNames,
                                 unassignedMembersString
                             }
                         }
                         .ToImmutableDictionary();
 
-                Diagnostic diagnostic = Diagnostic.Create(AssignAll_Analyzer.Rule,
+                Diagnostic diagnostic = Diagnostic.Create(AssignAllAnalyzer.Rule,
                     objectCreation.GetLocation(),
-                    //ctx.Node.GetLocation(),
                     properties, objectCreationNamedType.Name, unassignedMembersString);
 
                 ctx.ReportDiagnostic(diagnostic);
             }
         }
 
-        public void CodeBlockEndAction(CodeBlockAnalysisContext ctx)
-        {
-        }
+        // public void CodeBlockEndAction(CodeBlockAnalysisContext ctx)
+        // {
+        // }
 
         private static ImmutableArray<string> GetIgnoredPropertyNames(ObjectCreationExpressionSyntax objectCreation)
         {
@@ -143,7 +139,7 @@ namespace AssignAll
                 memberAssignmentsLeadingTrivia
                     .Concat(closingBraceLeadingTrivia)
                     .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                    .Select(trivia => AssignAll_Analyzer.CommentedMemberAssignmentRegex
+                    .Select(trivia => AssignAllAnalyzer.CommentedMemberAssignmentRegex
                         .Match(trivia.ToString()))
                     .Where(match => match.Success)
                     .Select(match => match.Groups[1].Value)

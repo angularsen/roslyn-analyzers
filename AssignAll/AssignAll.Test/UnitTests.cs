@@ -1,22 +1,21 @@
-﻿using Microsoft.CodeAnalysis;
+﻿﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using CodeFixVerifier = AssignAll.Test.Verifiers.CodeFixVerifier;
+using TestHelper;
+ using Xunit;
 
-namespace AssignAll.Test
+ namespace AssignAll.Test
 {
-    [TestClass]
     public class UnitTest : CodeFixVerifier
     {
         // No diagnostics expected to show up
-        [TestMethod]
+        [Fact]
         public void EmptyCode_AddsNoDiagnostics()
         {
             var test = @"";
             VerifyCSharpDiagnostic(test);
         }
 
-        [TestMethod]
+        [Fact]
         public void AllPropertiesAndFieldsAssigned_AddsNoDiagnostics()
         {
             var testContent = @"
@@ -48,7 +47,7 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
-        [TestMethod]
+        [Fact]
         public void EnableAndDisableComments_EnablesAndDisablesAnalyzerForTextSpans()
         {
             var testContent = @"
@@ -104,7 +103,7 @@ namespace SampleConsoleApp
             );
         }
 
-        [TestMethod]
+        [Fact]
         public void EnableCommentAtTopOfFile_EnablesAnalyzerForEntireFile()
         {
             var testContent = @"
@@ -136,7 +135,7 @@ namespace SampleConsoleApp
         }
 
         // Verify that analyzer does not care about syntax scopes by adding it inside a method
-        [TestMethod]
+        [Fact]
         public void EnableCommentInsideMethod_EnablesAnalyzerForEntireFileBelow()
         {
             var testContent = @"
@@ -191,7 +190,7 @@ namespace SampleConsoleApp
 
         // These properties are not assigned, but excluded from diagnostic due to being commented out.
         // Test different whitespace variations and different positions in assignment expression list.
-        [TestMethod]
+        [Fact]
         public void CommentedMemberAssignments_ExcludedFromDiagnostic()
         {
             var testContent = @"
@@ -231,7 +230,7 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent, expected);
         }
 
-        [TestMethod]
+        [Fact]
         public void PropertiesNotAssigned_AddsDiagnosticWithPropertyNames()
         {
             var testContent = @"
@@ -260,7 +259,7 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent, expected);
         }
 
-        [TestMethod]
+        [Fact]
         public void PropertiesNotAssigned_NoCommentToEnableAnalyzer_AddsNoDiagnostics()
         {
             var testContent = @"
@@ -290,7 +289,7 @@ namespace SampleConsoleApp
         }
 
 
-        [TestMethod]
+        [Fact]
         public void IndexerPropertyNotAssigned_AddsNoDiagnostics()
         {
             var testContent = @"
@@ -316,7 +315,8 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
-        [TestMethod]
+
+        [Fact]
         public void MethodsNotAssigned_AddsNoDiagnostics()
         {
             var testContent = @"
@@ -343,7 +343,7 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
-        [TestMethod]
+        [Fact]
         public void ReadOnlyPropertyNotAssigned_AddsNoDiagnostics()
         {
             var testContent = @"
@@ -371,7 +371,7 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
-        [TestMethod]
+        [Fact]
         public void ReadOnlyFieldNotAssigned_AddsNoDiagnostics()
         {
             var testContent = @"
@@ -399,7 +399,7 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
-        [TestMethod]
+        [Fact]
         public void ListInitializer_AddsNoDiagnostics()
         {
             var testContent = @"
@@ -417,7 +417,8 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
-        [TestMethod]
+
+        [Fact]
         public void FieldNotAssigned_NoCommentToEnableAnalyzer_AddsNoDiagnostics()
         {
             var testContent = @"
@@ -445,7 +446,7 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
-        [TestMethod]
+        [Fact]
         public void FieldNotAssigned_AddsDiagnosticWithFieldName()
         {
             var testContent = @"
@@ -454,10 +455,10 @@ namespace SampleConsoleApp
     internal static class Program
     {
         private static void Main(string[] args)
-        {
+    {
             // AssignAll enable
             var foo = new Foo
-            {
+        {   
                 // FieldInt not assigned, diagnostic error
             };
         }
@@ -466,7 +467,7 @@ namespace SampleConsoleApp
         {
             public int FieldInt;
         }
-    }
+        }
 }
 ";
             DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("FieldInt");
@@ -474,9 +475,9 @@ namespace SampleConsoleApp
         }
 
 
-        [TestMethod]
+        [Fact]
         public void FieldDeclaration_IsAnalyzed()
-        {
+            {
             var testContent = @"
 // AssignAll enable
 namespace SampleConsoleApp
@@ -494,13 +495,13 @@ namespace SampleConsoleApp
 ";
             DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 7, 48, 0, "FieldInt");
             VerifyCSharpDiagnostic(testContent, expected);
-        }
+                        }
 
         /// <remarks>
         ///     TODO Revisit this when the implementation supports looking at context and whether the member can be assigned
         ///     or not.
         /// </remarks>
-        [TestMethod]
+        [Fact]
         public void NonPublicFieldsNotAssigned_AddsNoDiagnostics()
         {
             string[] accessModifiers = {"private", "internal", "protected", "protected internal"};
@@ -532,9 +533,13 @@ namespace SampleConsoleApp
             }
         }
 
-        [TestMethod]
+
+
+
+
+        [Fact]
         public void UnassignedMembersWithoutObjectInitializer_AddsNoDiagnostics()
-        {
+    {
             var testContent = @"
 namespace SampleConsoleApp
 {
@@ -549,7 +554,7 @@ namespace SampleConsoleApp
         }
 
         private class Foo
-        {
+        {   
             public int FieldInt;
         }
     }
@@ -558,7 +563,7 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
-        [TestMethod]
+        [Fact]
         public void DoesNotAddDiagnostics_IfNoEnableCommentAbove()
         {
             var testContent = @"
@@ -585,7 +590,7 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
-        [TestMethod]
+        [Fact]
         public void EnableComment_DoesNotAffectOtherFiles()
         {
             var types = @"
@@ -639,7 +644,7 @@ namespace TestCode
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new AssignAll_Analyzer();
+            return new AssignAllAnalyzer();
         }
 
         private static DiagnosticResult GetMissingAssignmentDiagnosticResult(string createdObjectTypeName, int line,

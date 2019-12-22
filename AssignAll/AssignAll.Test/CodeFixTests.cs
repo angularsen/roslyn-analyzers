@@ -1,14 +1,12 @@
-﻿using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using CodeFixVerifier = AssignAll.Test.Verifiers.CodeFixVerifier;
+﻿using Microsoft.CodeAnalysis.Diagnostics;
+using TestHelper;
+using Xunit;
 
 namespace AssignAll.Test
 {
-    [TestClass]
     public class CodeFixTests : CodeFixVerifier
     {
-        [TestMethod]
+        [Fact]
         public void EmptyInitializer_PopulatesAssignmentsForAllPublicMembers()
         {
             var testContent = @"
@@ -60,10 +58,10 @@ namespace SampleConsoleApp
 ";
             // The code fix will produce intentional compile errors,
             // so skip new compiler diagnostics as they will just fail
-            VerifyCSharpFix(testContent, fixedContent, verifyDiagnosticsRemovedByCodeFix: false);
+            VerifyCSharpFix(testContent, fixedContent, allowNewCompilerDiagnostics: true);
         }
 
-        [TestMethod]
+        [Fact]
         public void PopulatesMissingAssignmentsAfterExistingAssignments()
         {
             var testContent = @"
@@ -121,17 +119,17 @@ namespace SampleConsoleApp
             // NOTE: There seems to be added an unnecessary newline before the comma by the code fix, not sure how to fix that yet
             // The code fix will produce intentional compile errors,
             // so skip new compiler diagnostics as they will just fail
-            VerifyCSharpFix(testContent, fixedContent, verifyDiagnosticsRemovedByCodeFix: false);
+            VerifyCSharpFix(testContent, fixedContent, allowNewCompilerDiagnostics: true);
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new AssignAll_Analyzer();
+            return new AssignAllAnalyzer();
         }
 
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
+        protected override Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new AssignAll_CodeFixProvider();
+            return new CodeFixProvider();
         }
 
     }
