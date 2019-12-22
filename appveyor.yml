@@ -1,13 +1,12 @@
-semver: 1.2.0
-version: '{semver}.{build}'
+version: 1.2.0.{build}
 image: Visual Studio 2019
 configuration: Release
 assembly_info:
   patch: true
   file: '**\AssemblyInfo.*'
-  assembly_version: '{semver}'
-  assembly_file_version: '{semver}'
-  assembly_informational_version: '{semver}'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}'
 before_build:
 - ps: nuget restore RoslynAnalyzers.sln
 build:
