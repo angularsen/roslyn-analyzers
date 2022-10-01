@@ -33,6 +33,11 @@ namespace AssignAll.Test
             return expected;
         }
 
+        private static DiagnosticResult GetMissingAssignmentDiagnosticResult(int line = 9, int column = 23, params string[] unassignedMemberNames)
+        {
+            return GetMissingAssignmentDiagnosticResult("Foo", line, column, 0, unassignedMemberNames);
+        }
+
         private static DiagnosticResult GetMissingAssignmentDiagnosticResult(params string[] unassignedMemberNames)
         {
             // Most code snippets in the tests are identical up to the object initializer
@@ -91,7 +96,7 @@ namespace SampleConsoleApp
                 // Commented assignments after opening brace.
                 // PropCommented1 = 1,
 
-                // Assigned property, OK'ed by analyzer
+                // Assigned property, OK by analyzer
                 PropAssigned = 1,
 
                 // Commented assignments just before closing brace
@@ -545,7 +550,7 @@ namespace SampleConsoleApp
             // AssignAll enable
             var foo = new Foo
             {
-                // ProtInt and PropString not assigned, diagnostic error
+                // PropInt and PropString not assigned, diagnostic error
             };
         }
 
@@ -558,6 +563,30 @@ namespace SampleConsoleApp
 }
 ";
             DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("PropInt", "PropString");
+            VerifyCSharpDiagnostic(testContent, expected);
+        }
+
+        [Fact]
+        public void PropertiesNotAssigned_InFileWithTopLevelStatements_AddsDiagnosticWithPropertyNames()
+        {
+            var testContent = @"
+// AssignAll enable
+var foo = new Foo
+{
+    // PropInt and PropString not assigned, diagnostic error
+};
+
+// Add methods and nested types available to top level statements via a partial Program class.
+public static partial class Program
+{
+    private class Foo
+    {
+        public int PropInt { get; set; }
+        public string PropString { get; set; }
+    }
+}
+";
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult(line: 3, column: 11, "PropInt", "PropString");
             VerifyCSharpDiagnostic(testContent, expected);
         }
 
