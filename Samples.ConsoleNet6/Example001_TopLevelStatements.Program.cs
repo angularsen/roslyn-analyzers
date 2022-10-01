@@ -27,6 +27,6 @@ public static partial class Program
     private class Foo2
     {
         public int PropInt { get; set; }
-        public string PropString { get; set; }
+        public string? PropString { get; set; }
     }
 }
