@@ -1,11 +1,11 @@
-version: 1.5.0.{build}
+version: 1.5.1.{build}
 image: Visual Studio 2019
 configuration: Release
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
   version: '{version}'
-  package_version: 1.5.0
+  package_version: 1.5.1
   assembly_version: '{version}'
   file_version: '{version}'
   informational_version: '{version}'
