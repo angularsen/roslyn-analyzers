@@ -65,7 +65,7 @@ namespace AssignAll
 
         private RegionsToAnalyze GetOrSetCachedRegionsToAnalyzeInFile(SyntaxNode codeBlock)
         {
-            SyntaxNode rootNode = codeBlock.Ancestors().Last();
+            SyntaxNode rootNode = codeBlock.Ancestors().LastOrDefault() ?? codeBlock;
             SyntaxReference rootNodeRef = rootNode.GetReference();
 
             if (_rootNodeToAnalyzerTextSpans.TryGetValue(rootNodeRef, out RegionsToAnalyze regionsToAnalyze))
