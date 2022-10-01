@@ -9,13 +9,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssignAll.Test", "AssignAll
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssignAll.Vsix", "AssignAll\AssignAll.Vsix\AssignAll.Vsix.csproj", "{B176E12E-F1EB-4776-9D13-3F4E9064E08D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleConsoleApp", "SampleConsoleApp\SampleConsoleApp.csproj", "{50FFCAEA-07D5-493E-8904-DEE6A7D9BE0D}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Files", "Files", "{D4A0A564-543B-4220-8194-F1E7447A4E2D}"
 ProjectSection(SolutionItems) = preProject
 	appveyor.yml = appveyor.yml
 	README.md = README.md
 EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.ConsoleNet6", "Samples.ConsoleNet6\Samples.ConsoleNet6.csproj", "{4A5DE914-8128-4CA6-87CE-0B9A9F2B91FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{B176E12E-F1EB-4776-9D13-3F4E9064E08D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B176E12E-F1EB-4776-9D13-3F4E9064E08D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B176E12E-F1EB-4776-9D13-3F4E9064E08D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{50FFCAEA-07D5-493E-8904-DEE6A7D9BE0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{50FFCAEA-07D5-493E-8904-DEE6A7D9BE0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{50FFCAEA-07D5-493E-8904-DEE6A7D9BE0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{50FFCAEA-07D5-493E-8904-DEE6A7D9BE0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A5DE914-8128-4CA6-87CE-0B9A9F2B91FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A5DE914-8128-4CA6-87CE-0B9A9F2B91FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A5DE914-8128-4CA6-87CE-0B9A9F2B91FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A5DE914-8128-4CA6-87CE-0B9A9F2B91FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

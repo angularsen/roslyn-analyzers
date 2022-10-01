@@ -1,4 +1,0 @@
-# Sample code needs to be in CRLF, because Roslyn code fix honors .editorconfig that is also set to CRLF.
-# Otherwise we could get a mix of LF and CRLF and the code fix tests can fail when checking out with gitconfig core.autocrlf = input,
-# which is exactly what AppVeyor build server uses.
-* text eol=crlf
