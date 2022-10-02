@@ -33,9 +33,9 @@ namespace AssignAll.Test
             return expected;
         }
 
-        private static DiagnosticResult GetMissingAssignmentDiagnosticResult(int line = 9, int column = 23, params string[] unassignedMemberNames)
+        private static DiagnosticResult GetMissingAssignmentDiagnosticResult(int line, int column, string typeName, string[] unassignedMemberNames)
         {
-            return GetMissingAssignmentDiagnosticResult("Foo", line, column, 0, unassignedMemberNames);
+            return GetMissingAssignmentDiagnosticResult(typeName, line, column, 0, unassignedMemberNames);
         }
 
         private static DiagnosticResult GetMissingAssignmentDiagnosticResult(params string[] unassignedMemberNames)
@@ -586,7 +586,8 @@ public static partial class Program
     }
 }
 ";
-            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult(line: 3, column: 11, "PropInt", "PropString");
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult(line: 3, column: 11, typeName: "Foo",
+                new[] { "PropInt", "PropString" });
             VerifyCSharpDiagnostic(testContent, expected);
         }
 
@@ -675,7 +676,6 @@ namespace SampleConsoleApp
             VerifyCSharpDiagnostic(testContent);
         }
 
-
         [Fact]
         public void UnassignedMembersWithoutObjectInitializer_AddsNoDiagnostics()
         {
@@ -701,5 +701,52 @@ namespace SampleConsoleApp
 ";
             VerifyCSharpDiagnostic(testContent);
         }
+
+        [Fact]
+        public void Inheritance_AnalyzesMembersOfBaseTypes()
+        {
+            var testContent = @"
+// AssignAll enable
+// EXAMPLE 004 - Analyzer should also consider public members from any base types.
+namespace Samples.ConsoleNet6;
+
+public static class Example004_Inheritance
+{
+    public static void Irrelevant()
+    {
+        // This should give analyzer error:
+        // Missing member assignments in object initializer for type 'Derived'. Properties: BasePropUnassigned, DerivedPropUnassigned
+        var foo = new Derived
+        {
+            // Commented assignments after opening brace.
+            // BasePropCommented = ,
+            // DerivedPropCommented = ,
+
+            // Assigned property, OK by analyzer
+            BasePropAssigned = 1,
+            DerivedPropAssigned = 1,
+        };
+    }
+}
+
+internal class Base
+{
+    public int BasePropAssigned { get; set; }
+    public int BasePropCommented { get; set; }
+    public int BasePropUnassigned { get; set; }
+}
+
+internal class Derived : Base
+{
+    public int DerivedPropAssigned { get; set; }
+    public int DerivedPropCommented { get; set; }
+    public int DerivedPropUnassigned { get; set; }
+}
+";
+            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult(line: 12, column: 19, typeName: "Derived",
+                new[] { "BasePropUnassigned", "DerivedPropUnassigned" });
+            VerifyCSharpDiagnostic(testContent, expected);
+        }
+
     }
 }

@@ -36,7 +36,16 @@ namespace AssignAll.AssignAllMembers
             if (objectCreationNamedType == null)
                 return;
 
-            ImmutableArray<ISymbol> members = objectCreationNamedType.GetMembers();
+            IEnumerable<ISymbol> membersEnumerable = objectCreationNamedType.GetMembers();
+            var baseType = objectCreationNamedType.BaseType;
+            for (int i = 0; i < 100; i++) // Max recursion
+            {
+                if (baseType == null || baseType.SpecialType == SpecialType.System_Object) break;
+                membersEnumerable = membersEnumerable.Concat(baseType.GetMembers());
+                baseType = baseType.BaseType;
+            }
+
+            var members = membersEnumerable.OrderBy(m => m.Name).ToImmutableList();
 
             List<string> assignedMemberNames = objectInitializer.ChildNodes()
                 .OfType<AssignmentExpressionSyntax>()
