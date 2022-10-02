@@ -13,12 +13,7 @@ namespace AssignAll
     public class AssignAllAnalyzer : DiagnosticAnalyzer
     {
         internal const string DiagnosticId = "AssignAll";
-
         internal const string Properties_UnassignedMemberNames = "UnassignedMemberNames";
-
-        internal const string CommentPattern_Disable = "AssignAll disable";
-        internal const string CommentPattern_Enable = "AssignAll enable";
-
         private const int MaxRootNodeCacheCount = 10;
         private const string Category = "Usage";
 

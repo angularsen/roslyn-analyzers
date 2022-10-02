@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
@@ -10,6 +10,9 @@ namespace AssignAll.AssignAllMembers
 {
     internal static class RegionsToAnalyzeProvider
     {
+        private static readonly Regex AssignAllDisableRegex = new Regex(@"^// AssignAll disable$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex AssignAllEnableRegex = new Regex(@"^// AssignAll enable$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         internal static RegionsToAnalyze GetRegionsToAnalyze(SyntaxNode rootNode)
         {
             IOrderedEnumerable<SyntaxTrivia> singleLineCommentsInEntireFile =
@@ -21,16 +24,13 @@ namespace AssignAll.AssignAllMembers
             var enabledTextSpans = new List<TextSpan>();
             foreach (SyntaxTrivia comment in singleLineCommentsInEntireFile)
             {
-                var commentText = comment.ToString().Replace("//", "").Trim();
-                if (commentText.Equals(AssignAllAnalyzer.CommentPattern_Enable,
-                    StringComparison.OrdinalIgnoreCase))
+                if (AssignAllEnableRegex.IsMatch(comment.ToString()))
                 {
                     // Start of enable analyzer text span
                     enabledTextSpans.Add(new TextSpan(comment.SpanStart,
                         rootNode.FullSpan.End - comment.SpanStart + 1));
                 }
-                else if (commentText.Equals(AssignAllAnalyzer.CommentPattern_Disable,
-                    StringComparison.OrdinalIgnoreCase))
+                else if (AssignAllDisableRegex.IsMatch(comment.ToString()))
                 {
                     // End of enable analyzer text span
                     TextSpan? currentEnabledTextSpan = enabledTextSpans.Cast<TextSpan?>().LastOrDefault();
