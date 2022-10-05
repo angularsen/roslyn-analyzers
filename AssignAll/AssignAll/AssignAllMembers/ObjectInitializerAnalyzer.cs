@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -25,15 +26,13 @@ namespace AssignAll.AssignAllMembers
             // TODO Support other means to enable, such as static configuration (analyze all/none by default), attributes on types and members
             if (!_regionsToAnalyze.TextSpans.Any(enabledTextSpan => enabledTextSpan.Contains(objectInitializer.SpanStart))) return;
 
-            // Only handle initializers immediately following object creation,
-            // not sure what the scenario would be since we are only registered for
-            // object initializers, not things like list/collection initializers.
-            if (!(objectInitializer.Parent is ObjectCreationExpressionSyntax objectCreation))
+            // Only handle initializers immediately following object creation.
+            // Not sure what any other scenario would be since we are only registered for object initializers,
+            // not things like list/collection initializers.
+            if (!(objectInitializer.Parent is BaseObjectCreationExpressionSyntax objectCreation))
                 return;
 
-            var objectCreationNamedType =
-                (INamedTypeSymbol) ctx.SemanticModel.GetSymbolInfo(objectCreation.Type).Symbol;
-            if (objectCreationNamedType == null)
+            if (!(ctx.SemanticModel.GetTypeInfo(objectCreation).Type is INamedTypeSymbol objectCreationNamedType))
                 return;
 
             IEnumerable<ISymbol> membersEnumerable = objectCreationNamedType.GetMembers();
@@ -114,7 +113,7 @@ namespace AssignAll.AssignAllMembers
         // {
         // }
 
-        private static ImmutableArray<string> GetIgnoredPropertyNames(ObjectCreationExpressionSyntax objectCreation)
+        private static ImmutableArray<string> GetIgnoredPropertyNames(BaseObjectCreationExpressionSyntax objectCreation)
         {
             ImmutableArray<string> propertiesByCommentedAssignment =
                 GetIgnoredPropertyNamesFromCommentedAssignments(objectCreation);
@@ -122,8 +121,10 @@ namespace AssignAll.AssignAllMembers
         }
 
         private static ImmutableArray<string> GetIgnoredPropertyNamesFromCommentedAssignments(
-            ObjectCreationExpressionSyntax objectCreation)
+            BaseObjectCreationExpressionSyntax objectCreation)
         {
+            if (objectCreation.Initializer == null) throw new InvalidOperationException("No initializer.");
+
             // Case 1: Commented member assignments before one or more actual member assignments
             // return new Foo {
             //   // Prop1 = null,
