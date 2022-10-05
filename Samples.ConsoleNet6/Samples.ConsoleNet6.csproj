@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="AssignAll" Version="1.5.0" />
+      <PackageReference Include="AssignAll" Version="1.7.0" />
     </ItemGroup>
 
 </Project>
