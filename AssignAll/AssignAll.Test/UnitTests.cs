@@ -529,6 +529,34 @@ namespace SampleConsoleApp
         }
 
         [Fact]
+        public async Task FileWithTopLevelStatements_AddsDiagnostic()
+        {
+            var test = @"
+// AssignAll enable
+var foo = {|#0:new Foo
+{
+    // PropInt and PropString not assigned, diagnostic error
+}|#0};
+
+// Add methods and nested types available to top level statements via a partial Program class.
+public static partial class Program
+{
+    private class Foo
+    {
+        public int PropInt { get; set; }
+        public string PropString { get; set; }
+    }
+}
+";
+
+            // Baz does not have AssignAll enabled and should have no diagnostics.
+            await VerifyCS.VerifyAnalyzerAsync(test,
+                t => t.TestState.OutputKind = OutputKind.ConsoleApplication,
+                VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt, PropString")
+            );
+        }
+
+        [Fact]
         public async Task PropertiesNotAssigned_NoCommentToEnableAnalyzer_AddsNoDiagnostics()
         {
             var test = @"
@@ -682,64 +710,6 @@ internal class Derived : Base
 ";
 
             var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Derived", "BasePropUnassigned, DerivedPropUnassigned" );
-            await VerifyCS.VerifyAnalyzerAsync(test, expected);
-        }
-
-        [Fact]
-        public async Task FileWithTopLevelStatements_AddsDiagnostic()
-        {
-            var test = @"
-// AssignAll enable
-var foo = {|#0:new Foo
-{
-    // PropInt and PropString not assigned, diagnostic error
-}|#0};
-
-// Add methods and nested types available to top level statements via a partial Program class.
-public static partial class Program
-{
-    private class Foo
-    {
-        public int PropInt { get; set; }
-        public string PropString { get; set; }
-    }
-}
-";
-
-            // Baz does not have AssignAll enabled and should have no diagnostics.
-            await VerifyCS.VerifyAnalyzerAsync(test,
-                t => t.TestState.OutputKind = OutputKind.ConsoleApplication,
-                VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt, PropString")
-            );
-        }
-
-        [Fact]
-        public async Task TargetTypedNewSyntax_AddsDiagnostic()
-        {
-            var test = @"
-// AssignAll enable
-namespace Samples.ConsoleNet6;
-
-public static class Example005_TargetTypedNew
-{
-    public static void Irrelevant()
-    {
-        // This should give analyzer error:
-        // Missing member assignments in object initializer for type 'Foo'. Properties: PropUnassigned
-        Foo foo = {|#0:new()
-        {
-            PropInt = 1,
-        }|#0};
-    }
-
-    private class Foo
-    {
-        public int PropInt { get; set; }
-        public string PropString { get; set; }
-    }
-}
-";
-            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropString");
             await VerifyCS.VerifyAnalyzerAsync(test, expected);
         }
     }
