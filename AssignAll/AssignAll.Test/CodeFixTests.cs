@@ -1,26 +1,18 @@
-﻿using AssignAll.Test.Verifiers;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
+﻿using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
+using VerifyCS = AssignAll.Test.Verifiers.CSharpCodeFixVerifier<
+    AssignAll.AssignAllAnalyzer,
+    AssignAll.AssignAllCodeFixProvider>;
 
 namespace AssignAll.Test
 {
-    public class CodeFixTests : CodeFixVerifier
+    public class CodeFixTests
     {
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new AssignAllAnalyzer();
-        }
-
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
-        {
-            return new AssignAllCodeFixProvider();
-        }
-
         [Fact]
-        public void EmptyInitializer_PopulatesAssignmentsForAllPublicMembers()
+        public async Task EmptyInitializer_PopulatesAssignmentsForAllPublicMembers()
         {
-            var testContent = @"
+            var testCode = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -35,14 +27,14 @@ namespace SampleConsoleApp
         private static void Main(string[] args)
         {
             // AssignAll enable
-            Foo foo = new Foo
+            Foo foo = {|#0:new Foo
             {
-            };
+            }|#0};
         }
     }
 }
 ";
-            var fixedContent = @"
+            var fixedCode = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -67,15 +59,15 @@ namespace SampleConsoleApp
     }
 }
 ";
-            // The code fix will produce intentional compile errors,
-            // so skip new compiler diagnostics as they will just fail
-            VerifyCSharpFix(testContent, fixedContent, allowNewCompilerDiagnostics: true);
+            // Ignore compile errors in the fixed code, it is intentional to force user to fix it.
+            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt, PropString, FieldBool");
+            await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode, t => t.CompilerDiagnostics = CompilerDiagnostics.None);
         }
 
         [Fact]
-        public void PopulatesMissingAssignmentsAfterExistingAssignments()
+        public async Task PopulatesMissingAssignmentsAfterExistingAssignments()
         {
-            var testContent = @"
+            var testCode = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -90,17 +82,17 @@ namespace SampleConsoleApp
         private static void Main(string[] args)
         {
             // AssignAll enable
-            Foo foo = new Foo
+            Foo foo = {|#0:new Foo
             {
                 PropInt = 1,
                 // PropString not assigned
                 FieldBool = true
-            };
+            }|#0};
         }
     }
 }
 ";
-            var fixedContent = @"
+            var fixedCode = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -127,10 +119,10 @@ namespace SampleConsoleApp
     }
 }
 ";
-            // NOTE: There seems to be added an unnecessary newline before the comma by the code fix, not sure how to fix that yet
-            // The code fix will produce intentional compile errors,
-            // so skip new compiler diagnostics as they will just fail
-            VerifyCSharpFix(testContent, fixedContent, allowNewCompilerDiagnostics: true);
+            // NOTE: There seems to be added an unnecessary newline before the comma by the code fix, not sure how to fix that yet.
+            // Ignore compile errors in the fixed code, it is intentional to force user to fix it.
+            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropString");
+            await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode, t => t.CompilerDiagnostics = CompilerDiagnostics.None);
         }
     }
 }

@@ -1,55 +1,18 @@
-﻿using AssignAll.Test.Verifiers;
+﻿using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
+using VerifyCS = AssignAll.Test.Verifiers.CSharpCodeFixVerifier<
+    AssignAll.AssignAllAnalyzer,
+    AssignAll.AssignAllCodeFixProvider>;
 
 namespace AssignAll.Test
 {
-    public class UnitTest : CodeFixVerifier
+    public class UnitTest
     {
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new AssignAllAnalyzer();
-        }
-
-        private static DiagnosticResult GetMissingAssignmentDiagnosticResult(string createdObjectTypeName, int line,
-            int column,
-            int fileIndex,
-            params string[] unassignedMemberNames)
-        {
-            var unassignedMembersString = string.Join(", ", unassignedMemberNames);
-            var expected = new DiagnosticResult
-            {
-                Id = "AssignAll",
-                Message =
-                    $"Missing member assignments in object initializer for type '{createdObjectTypeName}'. Properties: {unassignedMembersString}",
-                Severity = DiagnosticSeverity.Error,
-                Locations =
-                    new[]
-                    {
-                        new DiagnosticResultLocation($"Test{fileIndex}.cs", line, column)
-                    }
-            };
-            return expected;
-        }
-
-        private static DiagnosticResult GetMissingAssignmentDiagnosticResult(int line, int column, string typeName, string[] unassignedMemberNames)
-        {
-            return GetMissingAssignmentDiagnosticResult(typeName, line, column, 0, unassignedMemberNames);
-        }
-
-        private static DiagnosticResult GetMissingAssignmentDiagnosticResult(params string[] unassignedMemberNames)
-        {
-            // Most code snippets in the tests are identical up to the object initializer
-            const int line = 9;
-            const int column = 23;
-            return GetMissingAssignmentDiagnosticResult("Foo", line, column, 0, unassignedMemberNames);
-        }
-
         [Fact]
-        public void AllPropertiesAndFieldsAssigned_AddsNoDiagnostics()
+        public async Task AllPropertiesAndFieldsAssigned_AddsNoDiagnostics()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -68,22 +31,22 @@ namespace SampleConsoleApp
         private class Foo
         {
             public int PropInt { get; set; }
-            public string PropString { get; }
+            public string PropString { get; set; }
             public bool FieldBool;
         }
     }
 }        
 ";
 
-            VerifyCSharpDiagnostic(testContent);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         // These properties are not assigned, but excluded from diagnostic due to being commented out.
         // Test different whitespace variations and different positions in assignment expression list.
         [Fact]
-        public void CommentedMemberAssignments_ExcludedFromDiagnostic()
+        public async Task CommentedMemberAssignments_ExcludedFromDiagnostic()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -91,7 +54,7 @@ namespace SampleConsoleApp
         private static void Main()
         {
             // AssignAll enable
-            var foo = new Foo
+            var foo = {|#0:new Foo
             {
                 // Commented assignments after opening brace.
                 // PropCommented1 = 1,
@@ -102,7 +65,7 @@ namespace SampleConsoleApp
                 // Commented assignments just before closing brace
                 //PropCommented2 = ,
                 // PropCommented3=,
-            };
+            }|#0};
         }
 
         private class Foo
@@ -116,14 +79,14 @@ namespace SampleConsoleApp
     }
 }
 ";
-            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 9, 23, 0, "PropUnassigned");
-            VerifyCSharpDiagnostic(testContent, expected);
+            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropUnassigned");
+            await VerifyCS.VerifyAnalyzerAsync(test, expected);
         }
 
         [Fact]
-        public void DoesNotAddDiagnostics_IfNoEnableCommentAbove()
+        public async Task DoesNotAddDiagnostics_IfNoEnableCommentAbove()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -144,21 +107,21 @@ namespace SampleConsoleApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(testContent);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         // No diagnostics expected to show up
         [Fact]
-        public void EmptyCode_AddsNoDiagnostics()
+        public async Task EmptyCode_AddsNoDiagnostics()
         {
             var test = @"";
-            VerifyCSharpDiagnostic(test);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         [Fact]
-        public void EnableAndDisableComments_EnablesAndDisablesAnalyzerForTextSpans()
+        public async Task EnableAndDisableComments_EnablesAndDisablesAnalyzerForTextSpans()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -166,7 +129,7 @@ namespace SampleConsoleApp
         private static void Main(string[] args)
         {
             // AssignAll enable
-            Foo foo = new Foo
+            Foo foo = {|#0:new Foo
             {
                 // PropInt not assigned, diagnostic error
 
@@ -175,14 +138,14 @@ namespace SampleConsoleApp
                 {
                     // PropInt not assigned, but analyzer is disabled, no diagnostic error
 
-                    // Re-enable analzyer for Baz creation
+                    // Re-enable analyzer for Baz creation
                     // AssignAll enable
-                    Baz = new Baz
+                    Baz = {|#1:new Baz
                     {
                         // PropInt not assigned, diagnostic error
-                    }
+                    }|#1}
                 }
-            };
+            }|#0};
         }
 
         private class Foo
@@ -194,6 +157,7 @@ namespace SampleConsoleApp
         private class Bar
         {
             public int PropInt { get; set; }
+            public Baz Baz { get; internal set; }
         }
 
         private class Baz
@@ -205,27 +169,27 @@ namespace SampleConsoleApp
 ";
 
             // Bar type has no diagnostic errors
-            VerifyCSharpDiagnostic(testContent,
-                GetMissingAssignmentDiagnosticResult("Foo", 9, 23, 0, "PropInt"),
-                GetMissingAssignmentDiagnosticResult("Baz", 20, 27, 0, "PropInt")
-            );
+            await VerifyCS.VerifyAnalyzerAsync(test,
+                VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt"),
+                VerifyCS.Diagnostic("AssignAll").WithLocation(1).WithArguments("Baz", "PropInt"));
         }
 
         [Fact]
-        public void EnableComment_DoesNotAffectOtherFiles()
+        public async Task EnableComment_DoesNotAffectOtherFiles()
         {
             var types = @"
 namespace TestCode
 {
     internal class Foo
     {
-        public int FooPropInt { get; set; }
+        public int PropInt { get; set; }
     }
 
     internal class Bar
     {
-        public int BarPropInt { get; set; }
+        public int PropInt { get; set; }
     }
+}
 ";
 
             var fooInitializer = @"
@@ -236,9 +200,9 @@ namespace TestCode
         private static void Initialize()
         {
             // AssignAll enable
-            var foo = new Foo
+            var foo = {|#0:new Foo
             {
-            };
+            }|#0};
         }
     }
 }
@@ -257,16 +221,16 @@ namespace TestCode
     }
 }
 ";
-            string[] fileSources = {types, fooInitializer, barInitializer};
 
-            DiagnosticResult expectedDiagnostics = GetMissingAssignmentDiagnosticResult("Foo", 9, 23, 1, "FooPropInt");
-            VerifyCSharpDiagnostic(fileSources, expectedDiagnostics);
+            // Bar does not have AssignAll enabled and should have no diagnostics.
+            await VerifyCS.VerifyAnalyzerAsync(new[] { fooInitializer, barInitializer, types },
+                VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt"));
         }
 
         [Fact]
-        public void EnableCommentAtTopOfFile_EnablesAnalyzerForEntireFile()
+        public async Task EnableCommentAtTopOfFile_EnablesAnalyzerForEntireFile()
         {
-            var testContent = @"
+            var test = @"
 // AssignAll enable
 namespace SampleConsoleApp
 {
@@ -274,10 +238,10 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            Foo foo = new Foo
+            Foo foo = {|#0:new Foo
             {
                 // PropInt not assigned, diagnostic error
-            };
+            }|#0};
         }
 
         private class Foo
@@ -288,17 +252,15 @@ namespace SampleConsoleApp
 }        
 ";
 
-            // Bar type has no diagnostic errors
-            VerifyCSharpDiagnostic(testContent,
-                GetMissingAssignmentDiagnosticResult("Foo", 9, 23, 0, "PropInt")
-            );
+            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt");
+            await VerifyCS.VerifyAnalyzerAsync(test, expected);
         }
 
         // Verify that analyzer does not care about syntax scopes by adding it inside a method
         [Fact]
-        public void EnableCommentInsideMethod_EnablesAnalyzerForEntireFileBelow()
+        public async Task EnableCommentInsideMethod_EnablesAnalyzerForEntireFileBelow()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -314,18 +276,18 @@ namespace SampleConsoleApp
         private static void Main(string[] args)
         {
             // AssignAll enable
-            Foo foo = new Foo
+            Foo foo = {|#0:new Foo
             {
                 // PropInt not assigned, diagnostic error
-            };
+            }|#0};
         }
 
         private static void CreateBarBelowEnableComment_IsAnalyzed()
         {
-            Bar foo = new Bar
+            Bar foo = {|#1:new Bar
             {
                 // PropInt not assigned, diagnostic error
-            };
+            }|#1};
         }
 
         private class Foo
@@ -341,24 +303,22 @@ namespace SampleConsoleApp
 }        
 ";
 
-            // Bar type has no diagnostic errors
-            VerifyCSharpDiagnostic(testContent,
-                GetMissingAssignmentDiagnosticResult("Foo", 17, 23, 0, "PropInt"),
-                GetMissingAssignmentDiagnosticResult("Bar", 25, 23, 0, "PropInt")
-            );
+            await VerifyCS.VerifyAnalyzerAsync(test,
+                VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt"),
+                VerifyCS.Diagnostic("AssignAll").WithLocation(1).WithArguments("Bar", "PropInt"));
         }
 
 
         [Fact]
-        public void FieldDeclaration_IsAnalyzed()
+        public async Task FieldDeclaration_IsAnalyzed()
         {
-            var testContent = @"
+            var test = @"
 // AssignAll enable
 namespace SampleConsoleApp
 {
     internal static class Program
     {
-        private static readonly Foo _myField = new Foo { };
+        private static readonly Foo _myField = {|#0:new Foo { }|#0};
 
         private class Foo
         {
@@ -367,43 +327,43 @@ namespace SampleConsoleApp
     }
 }
 ";
-            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("Foo", 7, 48, 0, "FieldInt");
-            VerifyCSharpDiagnostic(testContent, expected);
+            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "FieldInt");
+            await VerifyCS.VerifyAnalyzerAsync(test, expected);
         }
 
         [Fact]
-        public void FieldNotAssigned_AddsDiagnosticWithFieldName()
+        public async Task FieldNotAssigned_AddsDiagnosticWithFieldName()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
     {
         private static void Main(string[] args)
-    {
+        {
             // AssignAll enable
-            var foo = new Foo
-        {   
+            var foo = {|#0:new Foo
+            {   
                 // FieldInt not assigned, diagnostic error
-            };
+            }|#0};
         }
 
         private class Foo
         {
             public int FieldInt;
         }
-        }
+    }
 }
 ";
-            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("FieldInt");
-            VerifyCSharpDiagnostic(testContent, expected);
+            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "FieldInt");
+            await VerifyCS.VerifyAnalyzerAsync(test, expected);
         }
 
 
         [Fact]
-        public void FieldNotAssigned_NoCommentToEnableAnalyzer_AddsNoDiagnostics()
+        public async Task FieldNotAssigned_NoCommentToEnableAnalyzer_AddsNoDiagnostics()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -425,14 +385,14 @@ namespace SampleConsoleApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(testContent);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
 
         [Fact]
-        public void IndexerPropertyNotAssigned_AddsNoDiagnostics()
+        public async Task IndexerPropertyNotAssigned_AddsNoDiagnostics()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -452,13 +412,14 @@ namespace SampleConsoleApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(testContent);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         [Fact]
-        public void ListInitializer_AddsNoDiagnostics()
+        public async Task ListInitializer_AddsNoDiagnostics()
         {
-            var testContent = @"
+            var test = @"
+using System.Collections.Generic;
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -470,14 +431,14 @@ namespace SampleConsoleApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(testContent);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
 
         [Fact]
-        public void MethodsNotAssigned_AddsNoDiagnostics()
+        public async Task MethodsNotAssigned_AddsNoDiagnostics()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -498,7 +459,7 @@ namespace SampleConsoleApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(testContent);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         /// <remarks>
@@ -506,12 +467,12 @@ namespace SampleConsoleApp
         ///     or not.
         /// </remarks>
         [Fact]
-        public void NonPublicFieldsNotAssigned_AddsNoDiagnostics()
+        public async Task NonPublicFieldsNotAssigned_AddsNoDiagnostics()
         {
             string[] accessModifiers = {"private", "internal", "protected", "protected internal"};
             foreach (var accessModifier in accessModifiers)
             {
-                var testContent = @"
+                var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -533,14 +494,14 @@ namespace SampleConsoleApp
 }
 ".Replace("{{accessModifier}}", accessModifier);
 
-                VerifyCSharpDiagnostic(testContent);
+                await VerifyCS.VerifyAnalyzerAsync(test);
             }
         }
 
         [Fact]
-        public void PropertiesNotAssigned_AddsDiagnosticWithPropertyNames()
+        public async Task PropertiesNotAssigned_AddsDiagnosticWithPropertyNames()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -548,10 +509,10 @@ namespace SampleConsoleApp
         private static void Main(string[] args)
         {
             // AssignAll enable
-            var foo = new Foo
+            var foo = {|#0:new Foo
             {
                 // PropInt and PropString not assigned, diagnostic error
-            };
+            }|#0};
         }
 
         private class Foo
@@ -562,19 +523,20 @@ namespace SampleConsoleApp
     }
 }
 ";
-            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult("PropInt", "PropString");
-            VerifyCSharpDiagnostic(testContent, expected);
+
+            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt, PropString");
+            await VerifyCS.VerifyAnalyzerAsync(test, expected);
         }
 
         [Fact]
-        public void PropertiesNotAssigned_InFileWithTopLevelStatements_AddsDiagnosticWithPropertyNames()
+        public async Task FileWithTopLevelStatements_AddsDiagnostic()
         {
-            var testContent = @"
+            var test = @"
 // AssignAll enable
-var foo = new Foo
+var foo = {|#0:new Foo
 {
     // PropInt and PropString not assigned, diagnostic error
-};
+}|#0};
 
 // Add methods and nested types available to top level statements via a partial Program class.
 public static partial class Program
@@ -586,15 +548,18 @@ public static partial class Program
     }
 }
 ";
-            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult(line: 3, column: 11, typeName: "Foo",
-                new[] { "PropInt", "PropString" });
-            VerifyCSharpDiagnostic(testContent, expected);
+
+            // Baz does not have AssignAll enabled and should have no diagnostics.
+            await VerifyCS.VerifyAnalyzerAsync(test,
+                t => t.TestState.OutputKind = OutputKind.ConsoleApplication,
+                VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt, PropString")
+            );
         }
 
         [Fact]
-        public void PropertiesNotAssigned_NoCommentToEnableAnalyzer_AddsNoDiagnostics()
+        public async Task PropertiesNotAssigned_NoCommentToEnableAnalyzer_AddsNoDiagnostics()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -617,13 +582,13 @@ namespace SampleConsoleApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(testContent);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         [Fact]
-        public void ReadOnlyFieldNotAssigned_AddsNoDiagnostics()
+        public async Task ReadOnlyFieldNotAssigned_AddsNoDiagnostics()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -645,13 +610,13 @@ namespace SampleConsoleApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(testContent);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         [Fact]
-        public void ReadOnlyPropertyNotAssigned_AddsNoDiagnostics()
+        public async Task ReadOnlyPropertyNotAssigned_AddsNoDiagnostics()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -673,13 +638,13 @@ namespace SampleConsoleApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(testContent);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         [Fact]
-        public void UnassignedMembersWithoutObjectInitializer_AddsNoDiagnostics()
+        public async Task UnassignedMembersWithoutObjectInitializer_AddsNoDiagnostics()
         {
-            var testContent = @"
+            var test = @"
 namespace SampleConsoleApp
 {
     internal static class Program
@@ -699,13 +664,13 @@ namespace SampleConsoleApp
     }
 }
 ";
-            VerifyCSharpDiagnostic(testContent);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         [Fact]
-        public void Inheritance_AnalyzesMembersOfBaseTypes()
+        public async Task Inheritance_AnalyzesMembersOfBaseTypes()
         {
-            var testContent = @"
+            var test = @"
 // AssignAll enable
 // EXAMPLE 004 - Analyzer should also consider public members from any base types.
 namespace Samples.ConsoleNet6;
@@ -716,7 +681,7 @@ public static class Example004_Inheritance
     {
         // This should give analyzer error:
         // Missing member assignments in object initializer for type 'Derived'. Properties: BasePropUnassigned, DerivedPropUnassigned
-        var foo = new Derived
+        var foo = {|#0:new Derived
         {
             // Commented assignments after opening brace.
             // BasePropCommented = ,
@@ -725,7 +690,7 @@ public static class Example004_Inheritance
             // Assigned property, OK by analyzer
             BasePropAssigned = 1,
             DerivedPropAssigned = 1,
-        };
+        }|#0};
     }
 }
 
@@ -743,10 +708,9 @@ internal class Derived : Base
     public int DerivedPropUnassigned { get; set; }
 }
 ";
-            DiagnosticResult expected = GetMissingAssignmentDiagnosticResult(line: 12, column: 19, typeName: "Derived",
-                new[] { "BasePropUnassigned", "DerivedPropUnassigned" });
-            VerifyCSharpDiagnostic(testContent, expected);
-        }
 
+            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Derived", "BasePropUnassigned, DerivedPropUnassigned" );
+            await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        }
     }
 }
