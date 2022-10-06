@@ -8,11 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include=".editorconfig" />
+        <Content Include=".editorconfig" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="AssignAll" Version="1.7.0" />
+        <ProjectReference Include="../AssignAll/AssignAll/AssignAll.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     </ItemGroup>
 
 </Project>
