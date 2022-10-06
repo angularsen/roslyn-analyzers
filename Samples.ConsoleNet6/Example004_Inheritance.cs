@@ -19,4 +19,18 @@ public static class Example004_Inheritance
             DerivedPropAssigned = 1,
         };
     }
+
+    private class Base
+    {
+        public int BasePropAssigned { get; set; }
+        public int BasePropCommented { get; set; }
+        public int BasePropUnassigned { get; set; }
+    }
+
+    private class Derived : Base
+    {
+        public int DerivedPropAssigned { get; set; }
+        public int DerivedPropCommented { get; set; }
+        public int DerivedPropUnassigned { get; set; }
+    }
 }

@@ -533,7 +533,7 @@ namespace SampleConsoleApp
         {
             var test = @"
 // AssignAll enable
-var foo = {|#0:new Foo
+var foo = {|#0:new Program.Foo
 {
     // PropInt and PropString not assigned, diagnostic error
 }|#0};
@@ -541,7 +541,7 @@ var foo = {|#0:new Foo
 // Add methods and nested types available to top level statements via a partial Program class.
 public static partial class Program
 {
-    private class Foo
+    internal class Foo
     {
         public int PropInt { get; set; }
         public string PropString { get; set; }
@@ -673,39 +673,40 @@ namespace SampleConsoleApp
             var test = @"
 // AssignAll enable
 // EXAMPLE 004 - Analyzer should also consider public members from any base types.
-namespace Samples.ConsoleNet6;
-
-public static class Example004_Inheritance
+namespace Samples.ConsoleNet6
 {
-    public static void Irrelevant()
+    public static class Example004_Inheritance
     {
-        // This should give analyzer error:
-        // Missing member assignments in object initializer for type 'Derived'. Properties: BasePropUnassigned, DerivedPropUnassigned
-        var foo = {|#0:new Derived
+        public static void Irrelevant()
         {
-            // Commented assignments after opening brace.
-            // BasePropCommented = ,
-            // DerivedPropCommented = ,
+            // This should give analyzer error:
+            // Missing member assignments in object initializer for type 'Derived'. Properties: BasePropUnassigned, DerivedPropUnassigned
+            var foo = {|#0:new Derived
+            {
+                // Commented assignments after opening brace.
+                // BasePropCommented = ,
+                // DerivedPropCommented = ,
 
-            // Assigned property, OK by analyzer
-            BasePropAssigned = 1,
-            DerivedPropAssigned = 1,
-        }|#0};
+                // Assigned property, OK by analyzer
+                BasePropAssigned = 1,
+                DerivedPropAssigned = 1,
+            }|#0};
+        }
+
+        private class Base
+        {
+            public int BasePropAssigned { get; set; }
+            public int BasePropCommented { get; set; }
+            public int BasePropUnassigned { get; set; }
+        }
+
+        private class Derived : Base
+        {
+            public int DerivedPropAssigned { get; set; }
+            public int DerivedPropCommented { get; set; }
+            public int DerivedPropUnassigned { get; set; }
+        }
     }
-}
-
-internal class Base
-{
-    public int BasePropAssigned { get; set; }
-    public int BasePropCommented { get; set; }
-    public int BasePropUnassigned { get; set; }
-}
-
-internal class Derived : Base
-{
-    public int DerivedPropAssigned { get; set; }
-    public int DerivedPropCommented { get; set; }
-    public int DerivedPropUnassigned { get; set; }
 }
 ";
 
