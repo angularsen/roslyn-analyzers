@@ -28,11 +28,13 @@ namespace AssignAll.AssignAllMembers
             // Only handle initializers immediately following object creation,
             // not sure what the scenario would be since we are only registered for
             // object initializers, not things like list/collection initializers.
-            if (!(objectInitializer.Parent is ObjectCreationExpressionSyntax objectCreation))
+            var objectCreation = GetObjectCreation(objectInitializer.Parent);
+
+            if (objectCreation == null)
                 return;
 
             var objectCreationNamedType =
-                (INamedTypeSymbol) ctx.SemanticModel.GetSymbolInfo(objectCreation.Type).Symbol;
+                (INamedTypeSymbol) ctx.SemanticModel.GetTypeInfo(objectCreation).Type;
             if (objectCreationNamedType == null)
                 return;
 
@@ -114,7 +116,7 @@ namespace AssignAll.AssignAllMembers
         // {
         // }
 
-        private static ImmutableArray<string> GetIgnoredPropertyNames(ObjectCreationExpressionSyntax objectCreation)
+        private static ImmutableArray<string> GetIgnoredPropertyNames(BaseObjectCreationExpressionSyntax objectCreation)
         {
             ImmutableArray<string> propertiesByCommentedAssignment =
                 GetIgnoredPropertyNamesFromCommentedAssignments(objectCreation);
@@ -122,7 +124,7 @@ namespace AssignAll.AssignAllMembers
         }
 
         private static ImmutableArray<string> GetIgnoredPropertyNamesFromCommentedAssignments(
-            ObjectCreationExpressionSyntax objectCreation)
+            BaseObjectCreationExpressionSyntax objectCreation)
         {
             // Case 1: Commented member assignments before one or more actual member assignments
             // return new Foo {
@@ -152,6 +154,16 @@ namespace AssignAll.AssignAllMembers
                     .Where(match => match.Success)
                     .Select(match => match.Groups[1].Value)
                     .ToImmutableArray();
+        }
+
+        private BaseObjectCreationExpressionSyntax GetObjectCreation(SyntaxNode syntaxNode)
+        {
+            BaseObjectCreationExpressionSyntax result = syntaxNode as ObjectCreationExpressionSyntax;
+
+            if (result == null)
+                result = syntaxNode as ImplicitObjectCreationExpressionSyntax;
+
+            return result;
         }
     }
 }
