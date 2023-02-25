@@ -28,7 +28,7 @@ namespace AssignAll.AssignAllMembers
             // Only handle initializers immediately following object creation,
             // not sure what the scenario would be since we are only registered for
             // object initializers, not things like list/collection initializers.
-            var objectCreation = GetObjectCreation(objectInitializer.Parent);
+            var objectCreation = objectInitializer.Parent as BaseObjectCreationExpressionSyntax;
 
             if (objectCreation == null)
                 return;
@@ -154,16 +154,6 @@ namespace AssignAll.AssignAllMembers
                     .Where(match => match.Success)
                     .Select(match => match.Groups[1].Value)
                     .ToImmutableArray();
-        }
-
-        private BaseObjectCreationExpressionSyntax GetObjectCreation(SyntaxNode syntaxNode)
-        {
-            BaseObjectCreationExpressionSyntax result = syntaxNode as ObjectCreationExpressionSyntax;
-
-            if (result == null)
-                result = syntaxNode as ImplicitObjectCreationExpressionSyntax;
-
-            return result;
         }
     }
 }
