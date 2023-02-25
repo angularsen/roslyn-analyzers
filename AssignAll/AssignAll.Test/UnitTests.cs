@@ -713,5 +713,35 @@ namespace Samples.ConsoleNet6
             var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Derived", "BasePropUnassigned, DerivedPropUnassigned" );
             await VerifyCS.VerifyAnalyzerAsync(test, expected);
         }
+
+        [Fact]
+        public async Task TargetTypedNew_UnassignedMembers_AddsDiagnostic()
+        {
+            var test = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            // AssignAll enable
+            Foo foo = {|#0:new()
+            {
+                // PropInt and PropString not assigned, diagnostic error
+            }|#0};
+        }
+
+        private class Foo
+        {
+            public int PropInt { get; set; }
+            public string PropString { get; set; }
+        }
+    }
+}
+";
+
+            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt, PropString");
+            await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        }
     }
 }
