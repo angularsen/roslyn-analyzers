@@ -28,9 +28,7 @@ namespace AssignAll.AssignAllMembers
             // Only handle initializers immediately following object creation,
             // not sure what the scenario would be since we are only registered for
             // object initializers, not things like list/collection initializers.
-            var objectCreation = objectInitializer.Parent as BaseObjectCreationExpressionSyntax;
-
-            if (objectCreation == null)
+            if (!(objectInitializer.Parent is BaseObjectCreationExpressionSyntax objectCreation))
                 return;
 
             var objectCreationNamedType =
