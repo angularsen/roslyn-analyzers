@@ -727,7 +727,8 @@ namespace SampleConsoleApp
             // AssignAll enable
             Foo foo = {|#0:new()
             {
-                // PropInt and PropString not assigned, diagnostic error
+                // PropString not assigned, diagnostic error
+                PropInt = 1,
             }|#0};
         }
 
@@ -740,7 +741,7 @@ namespace SampleConsoleApp
 }
 ";
 
-            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt, PropString");
+            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropString");
             await VerifyCS.VerifyAnalyzerAsync(test, expected);
         }
     }
