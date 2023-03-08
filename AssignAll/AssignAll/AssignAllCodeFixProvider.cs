@@ -43,7 +43,7 @@ namespace AssignAll
                 return;
 
             // Find the object initializer identified by the diagnostic
-            var objectCreation = root.FindNode(diagnosticSpan) as ObjectCreationExpressionSyntax;
+            var objectCreation = root.FindNode(diagnosticSpan) as BaseObjectCreationExpressionSyntax;
             InitializerExpressionSyntax objectInitializer = objectCreation?.Initializer;
             if (objectInitializer == null)
                 return;
