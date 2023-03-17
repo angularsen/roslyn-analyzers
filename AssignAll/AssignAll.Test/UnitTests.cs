@@ -118,28 +118,30 @@ namespace SampleConsoleApp
             await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
-        [Fact]
-        public async Task EnableAndDisableComments_EnablesAndDisablesAnalyzerForTextSpans()
+        [Theory]
+        [InlineData("// AssignAll")]
+        [InlineData("//AssignAll")]
+        public async Task EnableAndDisableComments_EnablesAndDisablesAnalyzerForTextSpans(string commentStart)
         {
-            var test = @"
+            var code = @"
 namespace SampleConsoleApp
 {
     internal static class Program
     {
         private static void Main(string[] args)
         {
-            // AssignAll enable
+            {commentStart} enable
             Foo foo = {|#0:new Foo
             {
                 // PropInt not assigned, diagnostic error
 
-                // AssignAll disable
+                {commentStart} disable
                 Bar = new Bar
                 {
                     // PropInt not assigned, but analyzer is disabled, no diagnostic error
 
                     // Re-enable analyzer for Baz creation
-                    // AssignAll enable
+                    {commentStart} enable
                     Baz = {|#1:new Baz
                     {
                         // PropInt not assigned, diagnostic error
@@ -165,8 +167,9 @@ namespace SampleConsoleApp
             public int PropInt { get; set; }
         }
     }
-}        
+}
 ";
+            var test = code.Replace("{commentStart}", commentStart);
 
             // Bar type has no diagnostic errors
             await VerifyCS.VerifyAnalyzerAsync(test,

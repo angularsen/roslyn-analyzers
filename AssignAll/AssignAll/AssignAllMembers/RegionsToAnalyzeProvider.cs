@@ -10,8 +10,8 @@ namespace AssignAll.AssignAllMembers
 {
     internal static class RegionsToAnalyzeProvider
     {
-        private static readonly Regex AssignAllDisableRegex = new Regex(@"^// AssignAll disable$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private static readonly Regex AssignAllEnableRegex = new Regex(@"^// AssignAll enable$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex AssignAllDisableRegex = new Regex(@"^// ?AssignAll disable$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex AssignAllEnableRegex = new Regex(@"^// ?AssignAll enable$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         internal static RegionsToAnalyze GetRegionsToAnalyze(SyntaxNode rootNode)
         {
