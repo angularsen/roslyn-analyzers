@@ -119,10 +119,19 @@ namespace SampleConsoleApp
         }
 
         [Theory]
-        [InlineData("// AssignAll")]
-        [InlineData("//AssignAll")]
-        public async Task EnableAndDisableComments_EnablesAndDisablesAnalyzerForTextSpans(string commentStart)
+        [InlineData("// {0}")]
+        [InlineData("//{0}")]
+        [InlineData("//{0} ")]
+        [InlineData("// {0} ")]
+        [InlineData("//\t{0}")]
+        [InlineData("//\t{0}\t")]
+        [InlineData("//     {0}      ")]
+        [InlineData("//  \t \t    {0}   \t\t  ")]
+        public async Task EnableAndDisableComments_EnablesAndDisablesAnalyzerForTextSpans(string commentTemplate)
         {
+            string enableComment = string.Format(commentTemplate, "AssignAll enable");
+            string disableComment = string.Format(commentTemplate, "AssignAll disable");
+
             var code = @"
 namespace SampleConsoleApp
 {
@@ -130,18 +139,18 @@ namespace SampleConsoleApp
     {
         private static void Main(string[] args)
         {
-            {commentStart} enable
+            {enableComment}
             Foo foo = {|#0:new Foo
             {
                 // PropInt not assigned, diagnostic error
 
-                {commentStart} disable
+                {disableComment}
                 Bar = new Bar
                 {
                     // PropInt not assigned, but analyzer is disabled, no diagnostic error
 
                     // Re-enable analyzer for Baz creation
-                    {commentStart} enable
+                    {enableComment}
                     Baz = {|#1:new Baz
                     {
                         // PropInt not assigned, diagnostic error
@@ -169,7 +178,8 @@ namespace SampleConsoleApp
     }
 }
 ";
-            var test = code.Replace("{commentStart}", commentStart);
+            var test = code.Replace("{enableComment}", enableComment)
+                .Replace("{disableComment}", disableComment);
 
             // Bar type has no diagnostic errors
             await VerifyCS.VerifyAnalyzerAsync(test,
