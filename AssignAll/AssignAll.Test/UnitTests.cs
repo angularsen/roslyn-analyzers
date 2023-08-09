@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = AssignAll.Test.Verifiers.CSharpCodeFixVerifier<
     AssignAll.AssignAllAnalyzer,
@@ -476,8 +478,7 @@ namespace SampleConsoleApp
         }
 
         /// <remarks>
-        ///     TODO Revisit this when the implementation supports looking at context and whether the member can be assigned
-        ///     or not.
+        ///     TODO Revisit this when the implementation supports looking at the calling context to determine if internal, protected and private setters can be assigned.
         /// </remarks>
         [Fact]
         public async Task NonPublicFieldsNotAssigned_AddsNoDiagnostics()
@@ -509,6 +510,49 @@ namespace SampleConsoleApp
 
                 await VerifyCS.VerifyAnalyzerAsync(test);
             }
+        }
+
+        /// <remarks>
+        ///     TODO Revisit this when the implementation supports looking at the calling context to determine if internal, protected and private setters can be assigned.
+        /// </remarks>
+        [Theory]
+        [InlineData("private", false)]
+        [InlineData("protected", false)]
+        [InlineData("protected internal", true)]
+        [InlineData("internal", true)]
+        [InlineData("", true)] // implicitly "public"
+        public async Task PropertyWithNonPublicSetter_AddsNoDiagnostics(string setterAccessModifier, bool expectDiagnostic)
+        {
+            var test = @"
+namespace SampleConsoleApp
+{
+    internal static class Program
+    {
+        private static void Main(string[] args)
+        {
+            // AssignAll enable
+            var foo = {|#0:new Foo
+            {
+                // PropInt not assigned, but non-public setters should be ignored until we can more intelligently 
+                // determine if the setter is available in the current scope.
+            }|#0};
+        }
+
+        private class Foo
+        {
+            public int PropInt { get; {{setterAccessModifier}} set; }
+        }
+    }
+}
+".Replace("{{setterAccessModifier}}", setterAccessModifier);
+
+            if (expectDiagnostic)
+            {
+                var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt");
+                await VerifyCS.VerifyAnalyzerAsync(test, expected);
+            }
+            else
+                await VerifyCS.VerifyAnalyzerAsync(test, Array.Empty<DiagnosticResult>());
         }
 
         [Fact]

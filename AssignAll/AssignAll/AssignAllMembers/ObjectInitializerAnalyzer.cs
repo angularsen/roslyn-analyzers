@@ -56,12 +56,18 @@ namespace AssignAll.AssignAllMembers
             IEnumerable<ISymbol> assignableProperties = members
                 .OfType<IPropertySymbol>()
                 .Where(m =>
+                {
                     // Exclude indexer properties
-                    !m.IsIndexer &&
-                    // Exclude read-only getter properties
-                    !m.IsReadOnly &&
-                    // Simplification, only care about public members
-                    m.DeclaredAccessibility == Accessibility.Public);
+                    return !m.IsIndexer &&
+                           // Exclude read-only getter properties
+                           !m.IsReadOnly &&
+                           // Simplification, only care about public members
+                           m.DeclaredAccessibility == Accessibility.Public &&
+                           // Try to determine if setter is accessible from the calling context, such as assigning private setters from within the class itself.
+                           m.SetMethod != null &&
+                           ctx.SemanticModel.IsAccessible(objectInitializer.SpanStart, m.SetMethod);
+                });
+
 
             IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
                 .Where(m =>
