@@ -51,16 +51,16 @@ namespace SampleConsoleApp
             // AssignAll enable
             Foo foo = new Foo
             {
+                FieldBool = ,
                 PropInt = ,
-                PropString = ,
-                FieldBool = 
+                PropString = 
             };
         }
     }
 }
 ";
             // Ignore compile errors in the fixed code, it is intentional to force user to fix it.
-            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "PropInt, PropString, FieldBool");
+            var expected = VerifyCS.Diagnostic("AssignAll").WithLocation(0).WithArguments("Foo", "FieldBool, PropInt, PropString");
             await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode, t => t.CompilerDiagnostics = CompilerDiagnostics.None);
         }
 

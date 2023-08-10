@@ -477,41 +477,6 @@ namespace SampleConsoleApp
             await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
-        /// <remarks>
-        ///     TODO Revisit this when the implementation supports looking at the calling context to determine if internal, protected and private setters can be assigned.
-        /// </remarks>
-        [Fact]
-        public async Task NonPublicFieldsNotAssigned_AddsNoDiagnostics()
-        {
-            string[] accessModifiers = {"private", "internal", "protected", "protected internal"};
-            foreach (var accessModifier in accessModifiers)
-            {
-                var test = @"
-namespace SampleConsoleApp
-{
-    internal static class Program
-    {
-        private static void Main(string[] args)
-        {
-            // AssignAll enable
-            var foo = new Foo
-            {
-                // FieldInt not assigned, diagnostic currently limited to public only, so all other access modifiers will be ignored
-            };
-        }
-
-        private class Foo
-        {
-            {{accessModifier}} int FieldInt;
-        }
-    }
-}
-".Replace("{{accessModifier}}", accessModifier);
-
-                await VerifyCS.VerifyAnalyzerAsync(test);
-            }
-        }
-
         [Fact]
         public async Task UnassignedMembers_OutsideClass_ExcludesProtectedAndPrivateMembers()
         {
