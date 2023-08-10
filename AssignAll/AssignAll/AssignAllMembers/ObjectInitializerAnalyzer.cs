@@ -60,8 +60,11 @@ namespace AssignAll.AssignAllMembers
                     !m.IsIndexer &&
                     // Exclude read-only getter properties
                     !m.IsReadOnly &&
-                    // Simplification, only care about public members
-                    m.DeclaredAccessibility == Accessibility.Public);
+                    // Exclude property setters not accessible from the calling context, such as assigning private setters from outside the class.
+                    m.SetMethod != null &&
+                    ctx.SemanticModel.IsAccessible(objectInitializer.SpanStart, m.SetMethod)
+                );
+
 
             IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
                 .Where(m =>
@@ -71,8 +74,9 @@ namespace AssignAll.AssignAllMembers
                     !m.HasConstantValue &&
                     // Exclude generated backing fields for properties
                     !m.IsImplicitlyDeclared &&
-                    // Simplification, only care about public members
-                    m.DeclaredAccessibility == Accessibility.Public);
+                    // Exclude fields not accessible from the calling context, such as assigning private setters from outside the class.
+                    ctx.SemanticModel.IsAccessible(objectInitializer.SpanStart, m)
+                );
 
             IEnumerable<string> assignableMemberNames = assignableProperties
                 .Concat(assignableFields)
@@ -84,6 +88,7 @@ namespace AssignAll.AssignAllMembers
                 assignableMemberNames
                     .Except(assignedMemberNames)
                     .Except(ignoredPropertyNames)
+                    .OrderBy(x => x)
                     .ToList();
 
             if (unassignedMemberNames.Any())

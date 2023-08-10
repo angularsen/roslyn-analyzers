@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = AssignAll.Test.Verifiers.CSharpCodeFixVerifier<
     AssignAll.AssignAllAnalyzer,
@@ -475,40 +477,88 @@ namespace SampleConsoleApp
             await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
-        /// <remarks>
-        ///     TODO Revisit this when the implementation supports looking at context and whether the member can be assigned
-        ///     or not.
-        /// </remarks>
         [Fact]
-        public async Task NonPublicFieldsNotAssigned_AddsNoDiagnostics()
+        public async Task UnassignedMembers_OutsideClass_ExcludesProtectedAndPrivateMembers()
         {
-            string[] accessModifiers = {"private", "internal", "protected", "protected internal"};
-            foreach (var accessModifier in accessModifiers)
-            {
-                var test = @"
-namespace SampleConsoleApp
+            var test = @"
+// AssignAll enable
+namespace SampleConsoleApp;
+internal static class Program
 {
-    internal static class Program
+    private static void Main(string[] args)
     {
-        private static void Main(string[] args)
+        // Gives analyzer error for all members except private setters and fields, since they are not accessible.
+        // Missing member assignments in object initializer for type 'Foo'. Properties: InternalField, InternalSetter, ProtectedInternalField, ProtectedInternalSetter, PublicField, PublicSetter
+        Foo foo = {|#0:new()
         {
-            // AssignAll enable
-            var foo = new Foo
-            {
-                // FieldInt not assigned, diagnostic currently limited to public only, so all other access modifiers will be ignored
-            };
+        }|#0};
+    }
+
+    private class Foo
+    {
+        public int PublicSetter { get; set; }
+        public int InternalSetter { get; internal set; }
+        public int ProtectedInternalSetter { get; protected internal set; }
+        public int ProtectedSetter { get; protected set; }
+        public int PrivateSetter { get; private set; }
+
+        public int PublicField;
+        internal int InternalField;
+        protected internal int ProtectedInternalField;
+        protected int ProtectedField;
+        private int PrivateField;
+    }
+}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(test,
+                VerifyCS.Diagnostic("AssignAll")
+                    .WithLocation(0)
+                    .WithArguments("Foo", "InternalField, InternalSetter, ProtectedInternalField, ProtectedInternalSetter, PublicField, PublicSetter"));
         }
 
-        private class Foo
+        [Fact]
+        public async Task UnassignedMembers_InsideClass_IncludesProtectedAndPrivateMembers()
         {
-            {{accessModifier}} int FieldInt;
+            var test = @"
+// AssignAll enable
+namespace SampleConsoleApp;
+internal static class Program
+{
+    private static void Main(string[] args)
+    {
+    }
+
+    private class Foo
+    {
+        public int PublicSetter { get; set; }
+        public int InternalSetter { get; internal set; }
+        public int ProtectedInternalSetter { get; protected internal set; }
+        public int ProtectedSetter { get; protected set; }
+        public int PrivateSetter { get; private set; }
+
+        public int PublicField;
+        internal int InternalField;
+        protected internal int ProtectedInternalField;
+        protected int ProtectedField;
+        private int PrivateField;
+
+        private Foo MethodWithAccessToProtectedAndPrivateMembers()
+        {
+            // Gives analyzer error for all members, including private setters and fields, since they are accessible.
+            // Missing member assignments in object initializer for type 'Foo'. Properties: InternalField, InternalSetter, PrivateField, PrivateSetter, ProtectedField, ProtectedInternalField, ProtectedInternalSetter, ProtectedSetter, PublicField, PublicSetter
+            return {|#0:new Foo
+            {
+            }|#0};
         }
     }
 }
-".Replace("{{accessModifier}}", accessModifier);
+";
 
-                await VerifyCS.VerifyAnalyzerAsync(test);
-            }
+            await VerifyCS.VerifyAnalyzerAsync(test,
+                VerifyCS.Diagnostic("AssignAll")
+                    .WithLocation(0)
+                    .WithArguments("Foo", "InternalField, InternalSetter, PrivateField, PrivateSetter, ProtectedField, ProtectedInternalField, ProtectedInternalSetter, ProtectedSetter, PublicField, PublicSetter"));
         }
 
         [Fact]
