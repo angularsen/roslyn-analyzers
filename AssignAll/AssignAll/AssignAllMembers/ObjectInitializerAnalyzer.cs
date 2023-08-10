@@ -50,9 +50,6 @@ namespace AssignAll.AssignAllMembers
                 .Select(assignmentSyntax => ((IdentifierNameSyntax) assignmentSyntax.Left).Identifier.ValueText)
                 .ToList();
 
-
-            // TODO Check if member is assignable using Roslyn data flow analysis instead of these constraints,
-            // as that is the only way to properly determine if it is assignable or not in a context
             IEnumerable<ISymbol> assignableProperties = members
                 .OfType<IPropertySymbol>()
                 .Where(m =>
@@ -64,7 +61,6 @@ namespace AssignAll.AssignAllMembers
                     m.SetMethod != null &&
                     ctx.SemanticModel.IsAccessible(objectInitializer.SpanStart, m.SetMethod)
                 );
-
 
             IEnumerable<ISymbol> assignableFields = members.OfType<IFieldSymbol>()
                 .Where(m =>
