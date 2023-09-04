@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="AssignAll.74bc95d8-2e09-485a-a68e-b4f03bece09f" Version="1.0" Language="en-US" Publisher="Andreas Gullberg Larsen"/>
+    <Identity Id="AssignAll.f65f0396-dee7-4505-9fb0-25fa9bbb4cf3" Version="1.0" Language="en-US" Publisher="andre"/>
     <DisplayName>AssignAll</DisplayName>
-    <Description xml:space="preserve">Diagnostic error if there are unassigned members in an object initializer and a code fix to add the missing ones.</Description>
+    <Description xml:space="preserve">This is a sample diagnostic extension for the .NET Compiler Platform ("Roslyn").</Description>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,)" />
@@ -14,6 +14,8 @@
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="AssignAll" Path="|AssignAll|"/>
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="AssignAll" Path="|AssignAll|"/>
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="AssignAll.CodeFixes" Path="|AssignAll.CodeFixes|"/>
+    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="AssignAll.CodeFixes" Path="|AssignAll.CodeFixes|"/>
   </Assets>
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,)" DisplayName="Visual Studio core editor" />
